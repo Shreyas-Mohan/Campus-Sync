@@ -24,7 +24,7 @@ router.get('/:id', async (req, res) => {
 
     const club = await Club.findOne(query)
       .select('-password')
-      .populate('coreTeam.userId', 'name profilePicture')
+      .populate('coreTeam.userId', 'name avatar')
       .populate('followers', 'name');
     
     if (!club) return res.status(404).json({ msg: 'Club not found' });
@@ -187,7 +187,7 @@ router.post('/:id/core-team', auth, async (req, res) => {
     // Return populated club data
     const updatedClub = await Club.findById(req.params.id)
        .select('-password')
-       .populate('coreTeam.userId', 'name profilePicture')
+       .populate('coreTeam.userId', 'name avatar')
        .populate('followers', 'name');
        
     res.json({ msg: 'Member added', club: updatedClub });
@@ -211,7 +211,7 @@ router.delete('/:id/core-team/:memberId', auth, async (req, res) => {
 
     const updatedClub = await Club.findById(req.params.id)
        .select('-password')
-       .populate('coreTeam.userId', 'name profilePicture')
+       .populate('coreTeam.userId', 'name avatar')
        .populate('followers', 'name');
 
     res.json({ msg: 'Member removed', club: updatedClub });

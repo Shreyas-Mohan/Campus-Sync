@@ -321,11 +321,11 @@ export default function ClubProfile() {
                           <UserMinus size={14} />
                         </button>
                       )}
-                      {member.userId?.profilePicture ? (
-                        <img src={member.userId.profilePicture} alt={member.name} style={{ width: 70, height: 70, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px auto', display: 'block', border: `2px solid ${th.border}` }} />
+                      {member.userId?.avatar ? (
+                        <img src={member.userId.avatar} alt={member.name} style={{ width: 70, height: 70, borderRadius: '50%', objectFit: 'cover', margin: '0 auto 10px auto', display: 'block', border: `2px solid ${th.border}` }} />
                       ) : (
                         <div style={{width: 70, height: 70, borderRadius: '50%', background: th.bg, border: `2px solid ${th.border}`, margin: '0 auto 10px auto', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                          <UserPlus size={24} color={th.muted}/>
+                          <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--purple)' }}>{member.name?.[0]?.toUpperCase() || '?'}</span>
                         </div>
                       )}
                       <div style={{ ...CS.teamName, fontSize: '1rem', wordBreak: 'break-word' }}>{member.name}</div>
