@@ -23,7 +23,7 @@ export default function StudentFeed() {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get('http://localhost:5000/api/events', {
+      const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEvents(data);
@@ -33,8 +33,8 @@ export default function StudentFeed() {
   const fetchMyRsvps = async () => {
     try {
       const [idsRes, eventsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/rsvp/mine/ids',  { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:5000/api/rsvp/mine',      { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/rsvp/mine/ids`,  { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/rsvp/mine`,      { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       setMyRsvpIds(new Set(idsRes.data));
       setMyEvents(eventsRes.data);

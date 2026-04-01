@@ -61,7 +61,7 @@ export default function ClubsList() {
   const fetchClubs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('http://localhost:5000/api/clubs', {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/clubs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setClubs(res.data);
@@ -76,7 +76,7 @@ export default function ClubsList() {
     e.preventDefault(); // Prevent Link click
     try {
       const route = isFollowing ? 'unfollow' : 'follow';
-      await axios.post(`http://localhost:5000/api/clubs/${clubId}/${route}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${clubId}/${route}`, {}, { headers: { Authorization: `Bearer ${token}` } });
       
       setClubs(prev => prev.map(c => {
         if (c._id === clubId) {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LogOut, Bell, Zap, RefreshCw, CheckCheck, Moon, Sun } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api`;
 
 /* ─── NotificationBell ─── */
 function NotificationBell({ token }) {

@@ -8,7 +8,7 @@ import {
   User, Mail, Shield, Save, ArrowLeft, Sparkles, CheckCircle2, Lock, Key
 } from 'lucide-react';
 
-const API = 'http://localhost:5000/api';
+const API = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api`;
 
 const ALL_INTERESTS = ['Tech', 'Music', 'Sports', 'Culture', 'Business', 'Art', 'Science', 'Social'];
 const ICONS = {

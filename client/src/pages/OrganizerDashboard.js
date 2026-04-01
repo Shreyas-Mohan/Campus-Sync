@@ -49,7 +49,7 @@ export default function OrganizerDashboard() {
 
   const fetchEvents = async () => {
     try {
-      const { data } = await axios.get('http://localhost:5000/api/events/all', {
+      const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEvents(data);
@@ -59,7 +59,7 @@ export default function OrganizerDashboard() {
   const fetchClubProfile = async () => {
     if (!isClub) return;
     try {
-      const { data } = await axios.get(`http://localhost:5000/api/clubs/${user.id}`, {
+      const { data } = await axios.get(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClubForm({
@@ -126,12 +126,12 @@ export default function OrganizerDashboard() {
     };
     try {
       if (editData) {
-        await axios.put(`http://localhost:5000/api/events/${editData._id}`, payload,
+        await axios.put(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${editData._id}`, payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success(payload.needsReapproval ? 'Edit submitted for faculty review!' : 'Event updated successfully! ✨');
       } else {
-        await axios.post('http://localhost:5000/api/events', payload,
+        await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`, payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Event submitted for approval! 🎉');
@@ -146,7 +146,7 @@ export default function OrganizerDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.put(`http://localhost:5000/api/clubs/${user.id}`, clubForm, {
+      await axios.put(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${user.id}`, clubForm, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Club profile updated successfully!');

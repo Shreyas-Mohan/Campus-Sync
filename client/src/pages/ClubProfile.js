@@ -83,8 +83,8 @@ export default function ClubProfile() {
     try {
       setLoading(true);
       const [clubRes, eventsRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/clubs/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`http://localhost:5000/api/clubs/${id}/events`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${id}`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${id}/events`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setClub(clubRes.data);
       setEvents(eventsRes.data);
@@ -99,7 +99,7 @@ export default function ClubProfile() {
     try {
       const isFollowing = club.followers?.includes(user?.id);
       const route = isFollowing ? 'unfollow' : 'follow';
-      await axios.post(`http://localhost:5000/api/clubs/${club._id}/${route}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${club._id}/${route}`, {}, { headers: { Authorization: `Bearer ${token}` } });
       
       // Optimitic update
       setClub(prev => ({
@@ -118,7 +118,7 @@ export default function ClubProfile() {
     e.preventDefault();
     if (!newMemberEmail || !newMemberTitle) return toast.error('Please fill both fields');
     try {
-      const res = await axios.post(`http://localhost:5000/api/clubs/${club._id}/core-team`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${club._id}/core-team`, {
         email: newMemberEmail,
         title: newMemberTitle
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -134,7 +134,7 @@ export default function ClubProfile() {
   const handleRemoveMember = async (memberId) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
     try {
-      const res = await axios.delete(`http://localhost:5000/api/clubs/${club._id}/core-team/${memberId}`, {
+      const res = await axios.delete(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${club._id}/core-team/${memberId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setClub(res.data.club);

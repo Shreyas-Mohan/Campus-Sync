@@ -38,7 +38,7 @@ export default function Register() {
     if (!form.name || !form.email || !form.password) return toast.error('Please fill all required fields');
     setSending(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/send-otp', { email: form.email, name: form.name });
+      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-otp`, { email: form.email, name: form.name });
       toast.success(`OTP sent to ${form.email}`);
       setStep(2); startCountdown();
     } catch (err) { toast.error(err.response?.data?.msg || 'Failed to send OTP'); }
@@ -61,7 +61,7 @@ export default function Register() {
     if (code.length < 6) return toast.error('Enter all 6 digits');
     setVerifying(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', { ...form, otp: code });
+      const { data } = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/register`, { ...form, otp: code });
       login(data.user, data.token);
       toast.success('Account created! 🎉');
       navigate(data.user.role === 'student' ? '/feed' : '/dashboard');
@@ -73,7 +73,7 @@ export default function Register() {
     if (countdown > 0) return;
     setSending(true);
     try {
-      await axios.post('http://localhost:5000/api/auth/send-otp', { email: form.email, name: form.name });
+      await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/send-otp`, { email: form.email, name: form.name });
       toast.success('New OTP sent!');
       setOtp(['', '', '', '', '', '']); startCountdown();
     } catch (err) { toast.error(err.response?.data?.msg || 'Failed to resend'); }

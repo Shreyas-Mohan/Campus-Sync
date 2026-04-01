@@ -26,7 +26,7 @@ export default function EventCard({
     setLoading(true);
     try {
       const { data } = await axios.post(
-        `http://localhost:5000/api/rsvp/${event._id}`, {},
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/rsvp/${event._id}`, {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setRsvpd(data.rsvpd);
@@ -40,7 +40,7 @@ export default function EventCard({
   const handleApproveStatus = async (status) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/events/${event._id}/status`, { status },
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${event._id}/status`, { status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success(`Event ${status}`);
@@ -51,7 +51,7 @@ export default function EventCard({
   const handleDelete = async () => {
     if (!window.confirm(`Delete "${event.title}"? This cannot be undone.`)) return;
     try {
-      await axios.delete(`http://localhost:5000/api/events/${event._id}`,
+      await axios.delete(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${event._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Event deleted');

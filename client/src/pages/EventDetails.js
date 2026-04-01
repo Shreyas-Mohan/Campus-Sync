@@ -102,7 +102,7 @@ function CommentItem({ comment, isOrganizer, eventId, token, onReplyAdded, onDel
     setSubmitting(true); setError('');
     try {
       const { data } = await axios.post(
-        `http://localhost:5000/api/comments/${eventId}/comment/${comment._id}/reply`,
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}/comment/${comment._id}/reply`,
         { text: replyText },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -117,7 +117,7 @@ function CommentItem({ comment, isOrganizer, eventId, token, onReplyAdded, onDel
     if (!window.confirm('Delete this comment?')) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/comments/${eventId}/comment/${comment._id}`,
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}/comment/${comment._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       onDeleted(comment._id);
@@ -133,7 +133,7 @@ function CommentItem({ comment, isOrganizer, eventId, token, onReplyAdded, onDel
     }
     try {
       const { data } = await axios.put(
-        `http://localhost:5000/api/comments/${eventId}/comment/${comment._id}`,
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}/comment/${comment._id}`,
         { text: editText },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -297,7 +297,7 @@ function CommentsSection({ eventId, organizerId, token, user }) {
     const fetch = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:5000/api/comments/${eventId}`,
+          `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setComments(data);
@@ -311,7 +311,7 @@ function CommentsSection({ eventId, organizerId, token, user }) {
     setPosting(true); setError('');
     try {
       const { data } = await axios.post(
-        `http://localhost:5000/api/comments/${eventId}`,
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}`,
         { text: newText },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -523,18 +523,18 @@ export default function EventDetails() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data: all } = await axios.get('http://localhost:5000/api/events/all',
+        const { data: all } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/all`,
           { headers: { Authorization: `Bearer ${token}` } });
         const found = all.find(e => e._id === id);
         if (found) { setEvent(found); }
         else {
-          const { data } = await axios.get('http://localhost:5000/api/events',
+          const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`,
             { headers: { Authorization: `Bearer ${token}` } });
           setEvent(data.find(e => e._id === id) || null);
         }
       } catch {
         try {
-          const { data } = await axios.get('http://localhost:5000/api/events',
+          const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`,
             { headers: { Authorization: `Bearer ${token}` } });
           setEvent(data.find(e => e._id === id) || null);
         } catch {}

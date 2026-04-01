@@ -16,7 +16,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/login', form);
+      const { data } = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/login`, form);
       login(data.user, data.token);
       toast.success(`Welcome back, ${data.user.name}!`);
       navigate(data.user.role === 'student' ? '/feed' : '/dashboard');
