@@ -15,6 +15,11 @@ app.use('/api/rsvp',          require('./routes/rsvp'));
 app.use('/api/comments',      require('./routes/comments'));
 app.use('/api/notifications', require('./routes/notifications'));
 
+// Root ping route for keep-alive cron jobs
+app.get('/', (req, res) => {
+  res.status(200).send('API is running.');
+});
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
