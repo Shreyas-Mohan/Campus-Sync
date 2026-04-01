@@ -6,6 +6,7 @@ const Club   = require('../models/Club');
 const OTP    = require('../models/OTP');
 const sendOTPEmail = require('../utils/sendOTP');
 const auth   = require('../middleware/auth');
+const cloudinary = require('../utils/cloudinary');
 
 // List of official club emails allowed to register as a 'Club'
 const ALLOWED_CLUB_EMAILS = [
@@ -179,29 +180,38 @@ router.get('/profile', auth, async (req, res) => {
     if (req.user.role === 'club') {
       account = await Club.findById(req.user.id).select('-password');
       if (!account) return res.status(404).json({ msg: 'Club not found' });
-      res.json({ id: account._id, name: account.name, email: account.email, role: 'club' });
+      res.json({ id: account._id, name: account.name, email: account.email, role: 'club', avatar: account.logo });
     } else {
       account = await User.findById(req.user.id).select('-password');
       if (!account) return res.status(404).json({ msg: 'User not found' });
-      res.json({ id: account._id, name: account.name, email: account.email, role: account.role, interests: account.interests });
+      res.json({ id: account._id, name: account.name, email: account.email, role: account.role, interests: account.interests, avatar: account.avatar });
     }
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });
 
-// PATCH update profile (name + interests)
+// PATCH update profile (name + interests + avatar)
 router.patch('/profile', auth, async (req, res) => {
   try {
-    const { name, interests } = req.body;
+    const { name, interests, avatar } = req.body;
     const updates = {};
     if (name?.trim()) updates.name = name.trim();
+    if (Array.isArray(interests)) updates.interests = interests;
+
+    if (avatar && avatar.startsWith('data:image')) {
+      const uploadRes = await cloudinary.uploader.upload(avatar, {
+        folder: 'campussync_avatars',
+      });
+      updates.avatar = uploadRes.secure_url;
+    }
     
     if (req.user.role === 'club') {
-      const club = await Club.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
-      res.json({ id: club._id, name: club.name, email: club.email, role: 'club' });
+      const clubUpdates = { ...updates };
+      if (updates.avatar) clubUpdates.logo = updates.avatar; // save avatar as logo for clubs
+      const club = await Club.findByIdAndUpdate(req.user.id, clubUpdates, { new: true }).select('-password');
+      res.json({ id: club._id, name: club.name, email: club.email, role: 'club', avatar: club.logo });
     } else {
-      if (Array.isArray(interests)) updates.interests = interests;
       const user = await User.findByIdAndUpdate(req.user.id, updates, { new: true }).select('-password');
-      res.json({ id: user._id, name: user.name, email: user.email, role: user.role, interests: user.interests });
+      res.json({ id: user._id, name: user.name, email: user.email, role: user.role, interests: user.interests, avatar: user.avatar });
     }
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });

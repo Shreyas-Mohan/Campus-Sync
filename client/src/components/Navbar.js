@@ -290,8 +290,12 @@ export default function Navbar({ title }) {
 
         {/* User chip — click to go to profile */}
         <div style={{ ...S.userChip, cursor: 'pointer' }} onClick={() => navigate('/profile')} title="View Profile">
-          <div style={S.avatar}>
-            {user?.name?.[0]?.toUpperCase() || 'U'}
+          <div style={{...S.avatar, overflow: 'hidden', padding: 0}}>
+            {user?.avatar ? (
+              <img src={user.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              user?.name?.[0]?.toUpperCase() || 'U'
+            )}
           </div>
           <div style={S.userInfo}>
             <span style={S.userName}>{user?.name?.split(' ')[0]}</span>

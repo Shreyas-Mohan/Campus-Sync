@@ -33,6 +33,8 @@ export default function Profile() {
 
   const [name,        setName]        = useState(user?.name || '');
   const [interests,   setInterests]   = useState(user?.interests || []);
+  const [avatarUrl,   setAvatarUrl]   = useState(user?.avatar || '');
+  const [avatarFile,  setAvatarFile]  = useState(null);
   const [saving,      setSaving]      = useState(false);
   const [changed,     setChanged]     = useState(false);
 
@@ -88,6 +90,7 @@ export default function Profile() {
         });
         setName(data.name || '');
         setInterests(data.interests || []);
+        setAvatarUrl(data.avatar || '');
       } catch {}
     };
     fetchProfile();
@@ -98,8 +101,9 @@ export default function Profile() {
     const nameChanged      = name.trim() !== (user?.name || '').trim();
     const prevInterests    = (user?.interests || []).slice().sort().join(',');
     const newInterests     = interests.slice().sort().join(',');
-    setChanged(nameChanged || prevInterests !== newInterests);
-  }, [name, interests, user]);
+    const avatarChanged    = avatarFile !== null;
+    setChanged(nameChanged || prevInterests !== newInterests || avatarChanged);
+  }, [name, interests, user, avatarFile]);
 
   const toggleInterest = (item) => {
     setInterests(prev =>
@@ -113,13 +117,14 @@ export default function Profile() {
     try {
       const { data } = await axios.patch(
         `${API}/auth/profile`,
-        { name: name.trim(), interests },
+        { name: name.trim(), interests, avatar: avatarFile },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       // Update AuthContext so Navbar name updates too
       login(data, token);
       toast.success('Profile updated! ✅');
       setChanged(false);
+      setAvatarFile(null);
     } catch (e) {
       toast.error(e.response?.data?.msg || 'Failed to save');
     } finally { setSaving(false); }
@@ -148,12 +153,37 @@ export default function Profile() {
           <div style={S.identityCard}>
             {/* Avatar */}
             <div style={S.avatarWrap}>
-              <div style={S.avatarRing}>
-                <div style={S.avatar}>
-                  {(user?.name?.[0] || '?').toUpperCase()}
+              <label style={{ cursor: 'pointer', position: 'relative' }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setAvatarFile(reader.result);
+                        setAvatarUrl(reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+                <div style={S.avatarRing}>
+                  <div style={{...S.avatar, overflow: 'hidden', padding: 0}}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      (user?.name?.[0] || '?').toUpperCase()
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div style={{ ...S.rolePill, color: rc.color, background: rc.bg, border: `1px solid ${rc.border}` }}>
+                <div style={{ position: 'absolute', bottom: -5, right: -5, background: 'var(--blue)', borderRadius: '50%', padding: '4px', border: '2px solid var(--bg)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={12} />
+                </div>
+              </label>
+              <div style={{ ...S.rolePill, color: rc.color, background: rc.bg, border: `1px solid ${rc.border}`, marginTop: '12px' }}>
                 {rc.icon} {rc.label}
               </div>
             </div>
