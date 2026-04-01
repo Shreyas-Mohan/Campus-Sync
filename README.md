@@ -2,6 +2,8 @@
 
 CampusSync is a full-stack MERN platform built to streamline event discovery, club management, and administrative approvals at IIITM. It replaces messy WhatsApp groups and scattered emails with a unified, beautiful hub for campus life.
 
+**🌐 Live Demo:** [https://campus-sync-sooty.vercel.app](https://campus-sync-sooty.vercel.app)
+
 ## ✨ Key Features
 * **Role-Based Workflows**: Three distinct dashboards for **Students**, **Clubs**, and **Faculty/Admins**.
 * **Official Club Profiles**: Dedicated, shareable club portfolios (`/club/[slug]`) with core team rosters, verified badges, and social links.
@@ -47,5 +49,23 @@ cd client
 npm install
 npm start
 ```
+
+## 📅 Version History / Changelog
+
+### v1.1.0 - The Polish Update (Latest)
+* **Cloudinary Integration:** Added high-performance image hosting for Event Posters, Club Logos, and User Avatars.
+* **UI/UX Overhaul:** Introduced responsive two-column feed, skeleton loaders during data fetch, and a refined Light Theme.
+* **Word Wrapping & Empty States:** Added safe text-wrapping for long comments and visual empty states for search filters.
+* **Security Dashboard:** Added robust OTP-based "Change Password" functionality for all user roles.
+
+### v1.0.0 - The Club Hierarchy Update
+* **Role Restructure:** Migrated from generic "organizers" to official **Clubs** with `@iiitm.ac.in` verified domains.
+* **Club Profiles:** Built dedicated `/club/[slug]` pages featuring follower counts, core team rosters, and social links.
+* **Tiered Event Editing:** Allowed clubs to make "safe" edits instantly, while sending critical edits back for Faculty re-approval.
+* **Threaded Conversations:** Upgraded Q&A section from 1-on-1 chats to nested, Instagram-style `@tagged` reply threads.
+* **Smart UI States:** Handled edge cases for "Event Ended" and "Sold Out" capacity lockouts.
+
+### v0.1.0 - Initial Release
+* Basic MERN stack initialization with OTP-based Auth and generic Event CRUD operations.
 
 *(Note: Run `node seedClubs.js` in the server folder to automatically populate official campus clubs).*
