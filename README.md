@@ -52,7 +52,13 @@ npm start
 
 ## 📅 Version History / Changelog
 
-### v1.1.0 - The Polish Update (Latest)
+### v1.2.0 - The Architecture & UX Audit Update (Latest)
+* **Access Control:** Fixed Faculty Dashboard routing, unlocking role-specific event approval panels.
+* **Server-Side Integrity:** Hardened RSVP limits to prevent network race conditions on sold-out events.
+* **Database Optimization:** Implemented cascade deletions for Comments and Notifications to prevent orphan DB records and frontend crashes.
+* **Global UX Enhancements:** Added an Axios interceptor for graceful handling of expired JWT tokens, standardized event status via server time (fixing timezone bias), and expanded skeleton loaders.
+
+### v1.1.0 - The Polish Update
 * **Cloudinary Integration:** Added high-performance image hosting for Event Posters, Club Logos, and User Avatars.
 * **UI/UX Overhaul:** Introduced responsive two-column feed, skeleton loaders during data fetch, and a refined Light Theme.
 * **Word Wrapping & Empty States:** Added safe text-wrapping for long comments and visual empty states for search filters.
