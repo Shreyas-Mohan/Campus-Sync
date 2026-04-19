@@ -273,7 +273,20 @@ export default function OrganizerDashboard() {
             {isFaculty ? 'Faculty Panel' : isAdmin ? 'Admin' : 'Organizer Dashboard'}
           </div>
           <h1 style={S.heading}>
-            {isFaculty ? 'Event Approvals' : `Hello, ${user?.name?.split(' ')[0]}`}
+            {isFaculty ? 'Event Approvals' : (
+              <>Hello, <span style={{ color: 'var(--blue)' }}>
+                {(() => {
+                  if (!user?.name) return 'User';
+                  const parts = user.name.trim().split(/\s+/);
+                  const first = parts[0];
+                  const titles = ['dr.', 'mr.', 'ms.', 'mrs.', 'prof.', 'sir'];
+                  if (titles.includes(first.toLowerCase()) && parts.length > 1) {
+                    return `${first} ${parts[1]}`;
+                  }
+                  return first;
+                })()}
+              </span></>
+            )}
           </h1>
           <p style={S.sub}>
             {isFaculty
@@ -303,28 +316,38 @@ export default function OrganizerDashboard() {
       </div>
 
       <div style={S.container}>
-        {/* ── Stats ── */}
-        <div style={S.statsRow}>
-          {STAT_CARDS.map(({ label, value, color, bg, border, Icon }) => (
-            <div key={label} style={{ ...S.statCard, background: bg, borderColor: border }}>
-              <div style={S.statIconWrap}>
-                <Icon size={18} color={color} />
-              </div>
-              <div style={{ ...S.statNum, color }}>{value}</div>
-              <div style={S.statLabel}>{label}</div>
-            </div>
-          ))}
+        {/* ── Context Header ── */}
+        <div style={S.contextHeader}>
+          <h2 style={S.listTitle}>
+            {tab.charAt(0).toUpperCase() + tab.slice(1)} Events 
+            <span style={{ color: 'var(--muted)', fontSize: 13, fontWeight: 400, marginLeft: 10 }}>
+              {filtered.length} total
+            </span>
+          </h2>
         </div>
 
-        {/* ── Tabs ── */}
+        {/* ── Tabs with Integrated Badges ── */}
         <div style={S.tabs}>
-          {[['all','Active Events'],['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['past','Past Events']].map(([val, lbl]) => (
+          {[
+            ['all', 'Active Events', stats.totalActive],
+            ['pending', 'Pending', stats.pending],
+            ['approved', 'Approved', stats.approved],
+            ['rejected', 'Rejected', stats.rejected],
+            ['past', 'Past Events', stats.past]
+          ].map(([val, lbl, count]) => (
             <button key={val} onClick={() => setTab(val)}
-              style={{ ...S.tabBtn, ...(tab === val ? S.tabBtnOn : {}) }}>
+              style={{ ...S.tabBtn, ...(tab === val ? S.tabBtnOn : {}), display: 'flex', alignItems: 'center', gap: 8 }}>
               {lbl}
-              {val === 'pending' && stats.pending > 0 && (
-                <span style={S.pendingBadge}>{stats.pending}</span>
-              )}
+              <span style={{ 
+                fontSize: 10, 
+                background: tab === val ? 'var(--blue)' : 'var(--bg3)', 
+                color: tab === val ? '#fff' : 'var(--muted)',
+                padding: '1px 6px', 
+                borderRadius: 6,
+                fontWeight: 700 
+              }}>
+                {count}
+              </span>
             </button>
           ))}
         </div>
@@ -634,6 +657,19 @@ const S = {
   },
 
   container: { maxWidth: 1200, margin: '0 auto', padding: '32px 28px 64px' },
+
+  contextHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 4px',
+    marginBottom: 20,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontFamily: "'DM Serif Display', serif",
+    color: 'var(--text)',
+  },
 
   statsRow: {
     display: 'grid',

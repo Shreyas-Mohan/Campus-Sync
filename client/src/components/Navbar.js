@@ -298,7 +298,19 @@ export default function Navbar({ title }) {
             )}
           </div>
           <div style={S.userInfo}>
-            <span style={S.userName}>{user?.name?.split(' ')[0]}</span>
+            <span style={S.userName}>
+              {(() => {
+                if (!user?.name) return 'User';
+                const parts = user.name.trim().split(/\s+/);
+                const first = parts[0];
+                // If it's a title and there's another word, show both
+                const titles = ['dr.', 'mr.', 'ms.', 'mrs.', 'prof.', 'sir'];
+                if (titles.includes(first.toLowerCase()) && parts.length > 1) {
+                  return `${first} ${parts[1]}`;
+                }
+                return first;
+              })()}
+            </span>
             <span style={{ ...S.roleTag, color: rc.color, background: rc.bg, border: `1px solid ${rc.border}` }}>
               {rc.label}
             </span>
@@ -368,7 +380,7 @@ const S = {
     fontSize: 13, fontWeight: 700, color: '#fff',
   },
   userInfo: { display: 'flex', flexDirection: 'column', gap: 2 },
-  userName: { fontSize: 13, fontWeight: 600, color: "var(--text)", lineHeight: 1 },
+  userName: { fontSize: 13, fontWeight: 600, color: "var(--text)", lineHeight: 1, maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   roleTag: {
     fontSize: 10, fontWeight: 600, padding: '1px 7px', borderRadius: 99,
     textTransform: 'uppercase', letterSpacing: '0.04em',

@@ -6,6 +6,9 @@ const auth   = require('../middleware/auth');
 // Toggle RSVP — POST same endpoint cancels if already RSVPd
 router.post('/:eventId', auth, async (req, res) => {
   try {
+    const eventParams = await Event.findById(req.params.eventId);
+    if (!eventParams) return res.status(404).json({ msg: 'Event not found' });
+
     const existing = await RSVP.findOne({
       user: req.user.id, event: req.params.eventId
     });
@@ -15,6 +18,11 @@ router.post('/:eventId', auth, async (req, res) => {
       await RSVP.deleteOne({ _id: existing._id });
       await Event.findByIdAndUpdate(req.params.eventId, { $inc: { rsvpCount: -1 } });
       return res.json({ rsvpd: false, msg: 'RSVP cancelled' });
+    }
+
+    // Add RSVP capacity check
+    if (eventParams.maxCapacity && eventParams.rsvpCount >= eventParams.maxCapacity) {
+      return res.status(400).json({ msg: 'Event is already at full capacity' });
     }
 
     // Add RSVP

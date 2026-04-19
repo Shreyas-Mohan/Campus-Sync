@@ -142,6 +142,12 @@ router.delete('/:id', auth, async (req, res) => {
 
     await Event.findByIdAndDelete(req.params.id);
     await RSVP.deleteMany({ event: req.params.id });
+    
+    // Clean up orphans
+    const Comment = require('../models/Comment');
+    await Comment.deleteMany({ event: req.params.id });
+    await Notification.deleteMany({ eventId: req.params.id });
+    
     res.json({ msg: 'Event deleted' });
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });

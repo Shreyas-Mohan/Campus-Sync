@@ -19,14 +19,19 @@ export default function StudentFeed() {
   const [cat,       setCat]       = useState('All');
   const [tab,       setTab]       = useState('discover'); // 'discover' | 'past' | 'mine'
   const [loading,   setLoading]   = useState(true);
+  const [serverTime, setServerTime] = useState(Date.now());
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setEvents(data);
+      // Extract accurate server time from the HTTP headers to avoid client timezone manipulation
+      if (res.headers.date) {
+        setServerTime(new Date(res.headers.date).getTime());
+      }
+      setEvents(res.data);
     } finally { setLoading(false); }
   };
 
@@ -64,7 +69,7 @@ export default function StudentFeed() {
     return matchCat && matchSearch;
   });
 
-  const isPastEvent = (d) => new Date(d) < new Date();
+  const isPastEvent = (d) => new Date(d).getTime() < serverTime;
   const activeEvents = filtered.filter(e => !isPastEvent(e.date));
   const pastEvents = filtered.filter(e => isPastEvent(e.date));
 
@@ -104,7 +109,18 @@ export default function StudentFeed() {
                 <Sparkles size={12} /> Campus Feed
               </div>
               <h1 style={S.heroH}>
-                {greeting}, <span style={S.heroName}>{user?.name?.split(' ')[0]}</span>
+                {greeting}, <span style={S.heroName}>
+                  {(() => {
+                    if (!user?.name) return 'User';
+                    const parts = user.name.trim().split(/\s+/);
+                    const first = parts[0];
+                    const titles = ['dr.', 'mr.', 'ms.', 'mrs.', 'prof.', 'sir'];
+                    if (titles.includes(first.toLowerCase()) && parts.length > 1) {
+                      return `${first} ${parts[1]}`;
+                    }
+                    return first;
+                  })()}
+                </span>
               </h1>
               <p style={S.heroSub}>Discover {events.length} events happening on campus</p>
             </div>
@@ -284,10 +300,14 @@ export default function StudentFeed() {
               <div style={S.sectionHead}>
                 <div>
                   <h2 style={S.sectionTitle}>📅 Events you're attending</h2>
-                  <p style={S.sectionSub}>{myEvents.length} event{myEvents.length !== 1 ? 's' : ''} in your schedule</p>
+                  {!loading && (
+                    <p style={S.sectionSub}>{myEvents.length} event{myEvents.length !== 1 ? 's' : ''} in your schedule</p>
+                  )}
                 </div>
               </div>
-              {myEvents.length === 0 ? (
+              {loading ? (
+                <div style={S.grid}>{[1,2,3,4].map(k => <SkeletonCard key={k} />)}</div>
+              ) : myEvents.length === 0 ? (
                 <div style={S.emptyState}>
                   <p style={{ fontSize: 48, marginBottom: 12 }}>📭</p>
                   <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>No RSVPs yet</p>

@@ -55,19 +55,23 @@ export default function Login() {
 
   return (
     <div style={S.page}>
-      {/* Ambient blobs */}
-      <div style={S.blob1} />
-      <div style={S.blob2} />
+      {/* Background Overlay for blur and darkening */}
+      <div style={S.overlay} />
 
       <div style={S.card}>
-        {/* Logo */}
-        <div style={S.logoWrap}>
-          <div style={S.logo}><Zap size={22} fill="#fff" color="#fff" /></div>
-          <div style={S.logoPulse} />
+        {/* Brand Logo & Title */}
+        <div style={S.brandWrap}>
+          <div style={S.logoWrap}>
+            <div style={S.logo}><Zap size={24} fill="#fff" color="#fff" /></div>
+            <div style={S.logoPulse} />
+          </div>
+          <h1 style={S.brandTitle}>CampusSync</h1>
+          {/* Your Full Project Title */}
+          <p style={S.matrixSubtitle}>Unified College Club & Event Matrix</p>
         </div>
 
-        <h1 style={S.title}>{forgotMode ? (resetStage ? 'Reset Password' : 'Forgot Password') : 'Welcome back'}</h1>
-        <p style={S.sub}>{forgotMode ? 'Recover your access' : 'Sign in to your CampusSync account'}</p>
+        <h2 style={S.title}>{forgotMode ? (resetStage ? 'Reset Password' : 'Forgot Password') : 'Member Login'}</h2>
+        <p style={S.sub}>{forgotMode ? 'Recover your access' : 'Sign in to your account'}</p>
 
         {forgotMode ? (
           resetStage ? (
@@ -180,6 +184,13 @@ export default function Login() {
           </>
         )}
       </div>
+
+      {/* Decorative Matrix Footer */}
+      <div style={S.pageFooter}>
+        <span style={S.footerClaim}>Discovery</span>
+        <span style={S.footerClaim}>Engagement</span>
+        <span style={S.footerClaim}>Coordination</span>
+      </div>
     </div>
   );
 }
@@ -187,54 +198,90 @@ export default function Login() {
 const S = {
   page: {
     minHeight: '100vh',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: "var(--bg)", position: 'relative', overflow: 'hidden', padding: 24,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    // Add your institute picture from the public folder
+    backgroundImage: `url('/IMG-20240905-WA0003.jpg')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  blob1: {
-    position: 'fixed', top: '-20%', left: '10%',
-    width: 600, height: 600, borderRadius: '50%',
-    background: 'radial-gradient(circle, var(--blue-dim) 0%, transparent 70%)',
-    pointerEvents: 'none', filter: 'blur(40px)',
+  overlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.45)', // Darkens the image slightly
+    backdropFilter: 'blur(8px)',       // Creates the blurred background effect
+    WebkitBackdropFilter: 'blur(8px)',
+    zIndex: 0,
   },
-  blob2: {
-    position: 'fixed', bottom: '-10%', right: '5%',
-    width: 500, height: 500, borderRadius: '50%',
-    background: 'radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%)',
-    pointerEvents: 'none', filter: 'blur(40px)',
-  },
-
   card: {
-    background: "var(--glass-bg)",
-    border: '1px solid var(--nav-border-scrolled)',
-    borderRadius: 20,
-    padding: '48px 44px',
-    width: '100%', maxWidth: 420,
-    textAlign: 'center',
-    backdropFilter: 'blur(24px)',
-    boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
-    animation: 'fadeUp 0.5s ease both',
-    position: 'relative', zIndex: 1,
+    // Glassmorphism Effect
+    background: 'rgba(25, 25, 25, 0.65)', 
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    width: '100%',
+    maxWidth: 420,
+    padding: '40px 32px',
+    borderRadius: 24,
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative',
+    zIndex: 1, // Sit above the background overlay
   },
 
-  logoWrap: { position: 'relative', width: 60, height: 60, margin: '0 auto 24px' },
+  brandWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  brandTitle: {
+    fontFamily: "'DM Serif Display', serif",
+    fontSize: 28,
+    color: '#fff',
+    marginTop: 14,
+    letterSpacing: 1,
+  },
+  logoWrap: {
+    position: 'relative',
+    width: 60,
+    height: 60,
+    borderRadius: '16px',
+    background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 24px rgba(var(--primary-rgb), 0.5)',
+    zIndex: 1,
+  },
   logo: {
-    width: 60, height: 60, borderRadius: 16,
-    background: 'linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    margin: '0 auto', boxShadow: '0 0 32px rgba(91,141,238,0.5)',
-    position: 'relative', zIndex: 1,
+    position: 'relative',
+    zIndex: 2,
+    display: 'flex',
   },
   logoPulse: {
-    position: 'absolute', inset: -6, borderRadius: 22,
-    background: 'linear-gradient(135deg, var(--blue), var(--purple))',
-    opacity: 0.15, animation: 'pulse-ring 2.5s ease-out infinite',
+    position: 'absolute',
+    inset: -4,
+    borderRadius: '20px',
+    background: 'var(--primary)',
+    opacity: 0.3,
+    filter: 'blur(8px)',
+    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
   },
 
   title: {
-    fontFamily: "'DM Serif Display', serif",
-    fontSize: 30, color: "var(--text)", marginBottom: 6,
+    fontSize: 22,
+    fontWeight: 700,
+    color: '#fff',
+    marginBottom: 6,
+    textAlign: 'center',
   },
-  sub: { color: "var(--muted)", fontSize: 14, marginBottom: 32 },
+  sub: { color: "rgba(255,255,255,0.7)", fontSize: 14, marginBottom: 32, textAlign: 'center' },
 
   form: { display: 'flex', flexDirection: 'column', gap: 18, textAlign: 'left' },
 
@@ -242,19 +289,19 @@ const S = {
   label: {
     display: 'flex', alignItems: 'center',
     fontSize: 12, fontWeight: 600,
-    color: "var(--text2)", textTransform: 'uppercase', letterSpacing: '0.06em',
+    color: "#e2e8f0", textTransform: 'uppercase', letterSpacing: '0.06em',
   },
   inputWrap: { position: 'relative' },
   input: {
-    background: "var(--bg-input)",
-    border: '1.5px solid var(--border)',
-    color: "var(--text)", padding: '12px 16px',
+    background: "rgba(255, 255, 255, 0.1)",
+    border: '1.5px solid rgba(255, 255, 255, 0.2)',
+    color: "#fff", padding: '12px 16px',
     borderRadius: 10, width: '100%', fontSize: 14,
     transition: 'all 0.2s', outline: 'none',
   },
   eyeBtn: {
     position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-    background: 'none', border: 'none', color: "var(--muted)",
+    background: 'none', border: 'none', color: "rgba(255,255,255,0.7)",
     display: 'flex', alignItems: 'center', padding: 4,
     transition: 'color 0.2s',
   },
@@ -275,22 +322,38 @@ const S = {
   },
 
   divider: {
-    margin: '24px 0 20px', display: 'flex', alignItems: 'center', gap: 12,
+    margin: '24px 0 20px', display: 'flex', alignItems: 'center', gap: 12, opacity: 0.6
   },
   dividerText: {
-    color: "var(--muted)", fontSize: 11, textTransform: 'uppercase',
+    color: "rgba(255,255,255,0.5)", fontSize: 11, textTransform: 'uppercase',
     letterSpacing: '0.08em', whiteSpace: 'nowrap',
     flex: 1, textAlign: 'center',
-    borderTop: '1px solid var(--border)',
+    borderTop: '1px solid rgba(255,255,255,0.1)',
     paddingTop: 12, marginTop: -12,
   },
 
   registerBtn: {
     display: 'block',
-    background: "var(--bg-input)",
-    border: '1.5px solid var(--border)',
-    color: "var(--text2)", borderRadius: 10,
+    background: "rgba(255, 255, 255, 0.05)",
+    border: '1.5px solid rgba(255, 255, 255, 0.1)',
+    color: "#fff", borderRadius: 10,
     padding: '12px', fontSize: 14, fontWeight: 500,
-    textAlign: 'center', transition: 'all 0.2s',
+    textAlign: 'center', transition: 'all 0.2s', textDecoration: 'none'
   },
+  // Add a subtle bottom-page footer for extra "Matrix" feel
+  pageFooter: {
+    position: 'absolute',
+    bottom: 30,
+    display: 'flex',
+    gap: 40,
+    zIndex: 1,
+    opacity: 0.5,
+  },
+  footerClaim: {
+    fontSize: 10,
+    color: '#fff',
+    textTransform: 'uppercase',
+    letterSpacing: '2px',
+    fontWeight: 500,
+  }
 };
