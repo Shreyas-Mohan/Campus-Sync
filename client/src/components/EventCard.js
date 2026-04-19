@@ -63,8 +63,15 @@ export default function EventCard({
     approved: { color: "var(--green)", bg: 'rgba(var(--green-rgb),0.08)', dot: "var(--green)", label: 'Live' },
     pending:  { color: "var(--accent)", bg: 'rgba(var(--accent-rgb),0.08)', dot: "var(--accent)", label: 'Pending' },
     rejected: { color: "var(--red)", bg: 'rgba(var(--red-rgb),0.08)', dot: "var(--red)", label: 'Rejected' },
+    past:     { color: "var(--muted)", bg: 'rgba(150,150,150,0.08)', dot: "var(--muted)", label: 'Ended' },
   };
-  const sc = statusCfg[event.status] || statusCfg.pending;
+
+  const isPastEvent = new Date(event.date) < new Date();
+  
+  let sc = statusCfg[event.status] || statusCfg.pending;
+  if (event.status === 'approved' && isPastEvent) {
+    sc = statusCfg.past;
+  }
 
   const catCfg = {
     Tech:     { color: "var(--blue)", icon: '💻' },
@@ -85,7 +92,6 @@ export default function EventCard({
     hour: '2-digit', minute: '2-digit',
   });
 
-  const isPastEvent = new Date(event.date) < new Date();
   const isSoldOut = event.maxCapacity && (count >= event.maxCapacity);
 
   return (

@@ -568,7 +568,12 @@ export default function EventDetails() {
   );
 
   const cc = CAT_CFG[event.category] || { color: "var(--blue)", icon: '📅', bg: "var(--blue-dim)" };
-  const sc = STATUS_CFG[event.status] || STATUS_CFG.pending;
+  
+  const isPastEvent = new Date(event.date) < new Date();
+  let sc = STATUS_CFG[event.status] || STATUS_CFG.pending;
+  if (event.status === 'approved' && isPastEvent) {
+    sc = STATUS_CFG.past;
+  }
 
   const fmtDate = new Date(event.date).toLocaleDateString('en-IN', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -580,7 +585,6 @@ export default function EventDetails() {
     ? Math.min(100, Math.round(((event.rsvpCount || 0) / event.maxCapacity) * 100))
     : null;
 
-  const isPastEvent = new Date(event.date) < new Date();
   const isSoldOut = event.maxCapacity && (event.rsvpCount >= event.maxCapacity);
 
   const handleAddToCalendar = () => {
@@ -969,28 +973,28 @@ const S = {
     objectFit: 'contain'
   },
 
-  metaGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, margin: '4px 0' },
+  metaGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, margin: '24px 0' },
   metaCard: {
     background: "var(--bg2)", border: '1px solid var(--border)', borderRadius: 12,
-    padding: '14px', display: 'flex', alignItems: 'center', gap: 12,
+    padding: '16px', display: 'flex', alignItems: 'center', gap: 16,
     transition: 'border-color 0.2s',
   },
   metaIcon: {
-    width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  metaLabel: { fontSize: 11, color: "var(--muted)", marginBottom: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' },
-  metaVal:   { fontSize: 14, color: "var(--text)", fontWeight: 500 },
+  metaLabel: { fontSize: 11, color: "var(--muted)", marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' },
+  metaVal:   { fontSize: 15, color: "var(--text)", fontWeight: 500 },
 
-  tagsRow: { display: 'flex', flexWrap: 'wrap', gap: 7, alignItems: 'center' },
+  tagsRow: { display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 24, marginBottom: 24 },
   tag: {
-    fontSize: 12, background: "var(--bg2)", border: '1px solid var(--border)',
-    padding: '4px 12px', borderRadius: 99, color: "var(--text2)",
+    fontSize: 13, background: "var(--bg2)", border: '1px solid var(--border)',
+    padding: '6px 14px', borderRadius: 99, color: "var(--text2)",
   },
 
-  divider: { height: 1, background: "var(--bg3)" },
+  divider: { height: 1, background: "var(--bg3)", margin: '32px 0' },
 
-  descSection: {},
+  descSection: { marginTop: 24, marginBottom: 32 },
   descTitle: {
     fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--text)", marginBottom: 14,
   },

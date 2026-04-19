@@ -90,18 +90,69 @@ export default function OrganizerDashboard() {
     } catch { toast.error('Failed to read image'); }
   };
 
+  // Draft Sync Logic
+  useEffect(() => {
+    if (modal && !editData) {
+      if (form !== BLANK) {
+        localStorage.setItem('eventDraft', JSON.stringify(form));
+      }
+    }
+  }, [form, modal, editData]);
+
+  const restoreDraft = () => {
+    const draft = localStorage.getItem('eventDraft');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        setForm(parsed);
+        setPosterPreview(parsed.poster || null);
+        toast.success("Draft restored!");
+      } catch (e) { toast.error('Failed to restore draft'); }
+    }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem('eventDraft');
+    setForm(BLANK);
+    setPosterPreview(null);
+  };
+
   const openCreate = () => {
-    setEditData(null); setForm(BLANK); setPosterPreview(null); setModal(true);
+    setEditData(null); 
+    
+    // Check if there is an existing draft, prefill if possible, else BLANK
+    const draft = localStorage.getItem('eventDraft');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        setForm(parsed);
+        setPosterPreview(parsed.poster || null);
+      } catch (e) {
+        setForm(BLANK); setPosterPreview(null);
+      }
+    } else {
+      setForm(BLANK); setPosterPreview(null); 
+    }
+    
+    setModal(true);
   };
 
   const openEdit = (event) => {
     setEditData(event);
+    
+    // Proper local datetime prepopulation to keep the same timezone context 
+    let localDatetimeString = '';
+    if (event.date) {
+      const d = new Date(event.date);
+      localDatetimeString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+    }
+
     setForm({
       title:               event.title,
       description:         event.description         || '',
       detailedDescription: event.detailedDescription || '',
       category:            event.category            || 'Tech',
-      date:                event.date ? event.date.slice(0, 16) : '',
+      date:                localDatetimeString,
       venue:               event.venue,
       tags:                event.tags?.join(', ')    || '',
       maxCapacity:         event.maxCapacity          || '',
@@ -119,8 +170,15 @@ export default function OrganizerDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    
+    // Fix: Convert the form.date (which is in local browser time) to a proper ISO string 
+    // before sending to the backend, preventing server-side timezone misalignment.
+    const localDate = new Date(form.date);
+    const finalDateStr = localDate.toISOString();
+
     const payload = {
       ...form,
+      date: finalDateStr,
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       organizerName: user.name,
     };
@@ -167,12 +225,14 @@ export default function OrganizerDashboard() {
   const filtered =
     tab === 'pending'  ? myEvents.filter(e => e.status === 'pending')  :
     tab === 'approved' ? myEvents.filter(e => e.status === 'approved') :
+    tab === 'past'     ? myEvents.filter(e => new Date(e.date) < new Date()) :
     myEvents;
 
   const stats = {
     total:     myEvents.length,
     approved:  myEvents.filter(e => e.status === 'approved').length,
     pending:   myEvents.filter(e => e.status === 'pending').length,
+    past:      myEvents.filter(e => new Date(e.date) < new Date()).length,
     totalRsvp: myEvents.reduce((s, e) => s + (e.rsvpCount || 0), 0),
   };
 
@@ -251,7 +311,7 @@ export default function OrganizerDashboard() {
 
         {/* ── Tabs ── */}
         <div style={S.tabs}>
-          {[['all','All Events'],['pending','Pending'],['approved','Approved']].map(([val, lbl]) => (
+          {[['all','All Events'],['pending','Pending'],['approved','Approved'],['past','Past Events']].map(([val, lbl]) => (
             <button key={val} onClick={() => setTab(val)}
               style={{ ...S.tabBtn, ...(tab === val ? S.tabBtnOn : {}) }}>
               {lbl}
@@ -369,9 +429,17 @@ export default function OrganizerDashboard() {
             {/* Modal header */}
             <div style={S.modalHead}>
               <div>
-                <h2 style={S.modalTitle}>{editData ? '✏️ Edit Event' : '✦ Create Event'}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <h2 style={S.modalTitle}>{editData ? '✏️ Edit Event' : '✦ Create Event'}</h2>
+                  {/* Draft Controls */}
+                  {!editData && localStorage.getItem('eventDraft') && (
+                    <button type="button" onClick={clearDraft} style={{ border: 'none', background: 'var(--red)', color: '#fff', fontSize: 11, padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
+                      Clear Draft
+                    </button>
+                  )}
+                </div>
                 <p style={S.modalSub}>
-                  {editData ? 'Changes will require re-approval' : 'Submit for faculty review'}
+                  {editData ? 'Changes will require re-approval' : localStorage.getItem('eventDraft') ? 'Resuming from saved draft...' : 'Submit for faculty review'}
                 </p>
               </div>
               <button onClick={() => setModal(false)} style={S.closeBtn}><X size={18} /></button>

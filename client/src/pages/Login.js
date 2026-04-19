@@ -9,8 +9,36 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetStage, setResetStage] = useState(false);
+  const [resetForm, setResetForm] = useState({ email: '', otp: '', newPassword: '' });
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    if (!resetForm.email) return toast.error("Please enter your email");
+    setLoading(true);
+    try {
+      const { data } = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/forgot-password`, { email: resetForm.email });
+      toast.success(data.msg);
+      setResetStage(true);
+    } catch(err) {
+      toast.error(err.response?.data?.msg || 'Request failed');
+    } finally { setLoading(false); }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/reset-password`, resetForm);
+      toast.success(data.msg);
+      setForgotMode(false); setResetStage(false); setResetForm({ email: '', otp: '', newPassword: '' });
+    } catch(err) {
+      toast.error(err.response?.data?.msg || 'Reset failed');
+    } finally { setLoading(false); }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,65 +66,119 @@ export default function Login() {
           <div style={S.logoPulse} />
         </div>
 
-        <h1 style={S.title}>Welcome back</h1>
-        <p style={S.sub}>Sign in to your CampusSync account</p>
+        <h1 style={S.title}>{forgotMode ? (resetStage ? 'Reset Password' : 'Forgot Password') : 'Welcome back'}</h1>
+        <p style={S.sub}>{forgotMode ? 'Recover your access' : 'Sign in to your CampusSync account'}</p>
 
-        <form onSubmit={handleSubmit} style={S.form}>
-          {/* Email */}
-          <div style={S.field}>
-            <label style={S.label}>
-              <Mail size={12} style={{ marginRight: 5 }} /> Email
-            </label>
-            <div style={S.inputWrap}>
-              <input
-                type="email"
-                placeholder="you@campus.edu"
-                value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                required
-                style={S.input}
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div style={S.field}>
-            <label style={S.label}>
-              <Lock size={12} style={{ marginRight: 5 }} /> Password
-            </label>
-            <div style={S.inputWrap}>
-              <input
-                type={showPass ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                required
-                style={{ ...S.input, paddingRight: 44 }}
-              />
-              <button type="button" onClick={() => setShowPass(p => !p)} style={S.eyeBtn}>
-                {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+        {forgotMode ? (
+          resetStage ? (
+            <form onSubmit={handleResetSubmit} style={S.form}>
+              <div style={S.field}>
+                <label style={S.label}><Mail size={12} style={{ marginRight: 5 }} /> Email</label>
+                <div style={S.inputWrap}>
+                  <input type="email" value={resetForm.email} readOnly style={S.input} />
+                </div>
+              </div>
+              <div style={S.field}>
+                <label style={S.label}><Lock size={12} style={{ marginRight: 5 }} /> OTP</label>
+                <div style={S.inputWrap}>
+                  <input type="text" placeholder="123456" value={resetForm.otp} onChange={e => setResetForm({ ...resetForm, otp: e.target.value })} required style={S.input} />
+                </div>
+              </div>
+              <div style={S.field}>
+                <label style={S.label}><Lock size={12} style={{ marginRight: 5 }} /> New Password</label>
+                <div style={S.inputWrap}>
+                  <input type="password" placeholder="••••••••" value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} required style={S.input} />
+                </div>
+              </div>
+              <button type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
+                {loading ? <span style={S.spinnerInline} /> : <><span>Update Password</span><ArrowRight size={16} /></>}
               </button>
+              <div style={S.footer}>
+                <span onClick={() => {setForgotMode(false); setResetStage(false);}} style={{...S.link, cursor: 'pointer'}}>Back to Login</span>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleForgotSubmit} style={S.form}>
+              <div style={S.field}>
+                <label style={S.label}><Mail size={12} style={{ marginRight: 5 }} /> Verification Email</label>
+                <div style={S.inputWrap}>
+                  <input type="email" placeholder="you@campus.edu" value={resetForm.email} onChange={e => setResetForm({ ...resetForm, email: e.target.value })} required style={S.input} />
+                </div>
+              </div>
+              <button type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
+                {loading ? <span style={S.spinnerInline} /> : <><span>Send OTP</span><ArrowRight size={16} /></>}
+              </button>
+              <div style={S.footer}>
+                <span onClick={() => setForgotMode(false)} style={{...S.link, cursor: 'pointer'}}>Back to Login</span>
+              </div>
+            </form>
+          )
+        ) : (
+          <form onSubmit={handleSubmit} style={S.form}>
+            {/* Email */}
+            <div style={S.field}>
+              <label style={S.label}>
+                <Mail size={12} style={{ marginRight: 5 }} /> Email
+              </label>
+              <div style={S.inputWrap}>
+                <input
+                  type="email"
+                  placeholder="you@campus.edu"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  required
+                  style={S.input}
+                />
+              </div>
             </div>
-          </div>
 
-          <button
-            type="submit"
-            style={{ ...S.btn, opacity: loading ? 0.75 : 1 }}
-            disabled={loading}
-          >
-            {loading ? (
-              <span style={S.spinnerInline} />
-            ) : (
-              <><span>Sign In</span><ArrowRight size={16} /></>
-            )}
-          </button>
-        </form>
+            {/* Password */}
+            <div style={S.field}>
+              <label style={S.label}>
+                <Lock size={12} style={{ marginRight: 5 }} /> Password
+              </label>
+              <div style={S.inputWrap}>
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  required
+                  style={{ ...S.input, paddingRight: 44 }}
+                />
+                <button type="button" onClick={() => setShowPass(p => !p)} style={S.eyeBtn}>
+                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: 'right', marginTop: '-12px', marginBottom: '24px' }}>
+              <span onClick={() => setForgotMode(true)} style={{...S.link, fontSize: 13, cursor: 'pointer'}}>Forgot Password?</span>
+            </div>
 
-        <div style={S.divider}><span style={S.dividerText}>new to campussync?</span></div>
+            <button
+              type="submit"
+              style={{ ...S.btn, opacity: loading ? 0.75 : 1 }}
+              disabled={loading}
+            >
+              {loading ? (
+                <span style={S.spinnerInline} />
+              ) : (
+                <><span>Sign In</span><ArrowRight size={16} /></>
+              )}
+            </button>
+          </form>
+        )}
 
-        <Link to="/register" style={S.registerBtn}>
-          Create a free account
-        </Link>
+        {!forgotMode && (
+          <>
+            <div style={S.divider}><span style={S.dividerText}>new to campussync?</span></div>
+
+            <Link to="/register" style={S.registerBtn}>
+              Create a free account
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

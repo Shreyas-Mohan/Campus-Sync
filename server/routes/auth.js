@@ -272,4 +272,48 @@ router.post('/change-password', auth, async (req, res) => {
   }
 });
 
+// POST Forgot Password Context
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if(!email) return res.status(400).json({msg: "Email required"});
+    let account = await User.findOne({email}) || await Club.findOne({email});
+    if(!account) return res.status(404).json({msg: "Email not found on any account"});
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await OTP.findOneAndUpdate({ email }, { otp, createdAt: Date.now() }, { upsert: true, new: true });
+    
+    const sendOTP = require('../utils/sendOTP');
+    await sendOTP(email, otp);
+    
+    res.json({msg: "OTP sent to your email!"});
+  } catch (err) {
+    res.status(500).json({ msg: 'Failed to send OTP' });
+  }
+});
+
+// POST Reset Password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) return res.status(400).json({ msg: 'Incomplete request data.' });
+
+    const record = await OTP.findOne({ email });
+    if (!record) return res.status(400).json({ msg: 'OTP expired or not sent.' });
+    if (record.otp !== otp) return res.status(400).json({ msg: 'Invalid OTP' });
+
+    let account = await User.findOne({email}) || await Club.findOne({email});
+    if (!account) return res.status(404).json({ msg: 'Account not found' });
+
+    const salt = await bcrypt.genSalt(10);
+    account.password = await bcrypt.hash(newPassword, salt);
+    await account.save();
+
+    await OTP.deleteOne({ email });
+    res.json({ msg: 'Password reset successfully! You can now login.' });
+  } catch (err) {
+    res.status(500).json({ msg: 'Failed to reset password' });
+  }
+});
+
 module.exports = router;
