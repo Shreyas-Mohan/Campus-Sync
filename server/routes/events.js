@@ -77,10 +77,12 @@ router.put('/:id', auth, async (req, res) => {
 
     const updateData = { ...req.body };
 
-    if (updateData.needsReapproval) {
+    if (updateData.needsReapproval || event.status === 'rejected') {
       updateData.status = 'pending';
-      updateData.isReapprovalRequest = true;
-      updateData.reapprovalNote = updateData.reapprovalNote || '';
+      updateData.isReapprovalRequest = !!updateData.needsReapproval;
+      if (updateData.needsReapproval) {
+        updateData.reapprovalNote = updateData.reapprovalNote || '';
+      }
     } else {
       updateData.status = event.status; 
     }
@@ -108,9 +110,12 @@ router.put('/:id', auth, async (req, res) => {
         const organizerUser = await User.findById(req.user.id).select('name');
         if (organizerUser) organizerName = organizerUser.name;
       }
-      const recipients    = await User.find({ role: { $in: ['student', 'admin'] } }).select('_id');
-      const notifDocs = recipients.map(u => ({
-        recipient:  u._id,
+      
+      const RSVP = require('../models/RSVP');
+      const activeRsvps = await RSVP.find({ event: event._id }).select('user');
+      
+      const notifDocs = activeRsvps.map(rsvp => ({
+        recipient:  rsvp.user,
         type:       'event_update',
         message:    `${organizerName} updated the event "${event.title}". Check out the latest details!`,
         eventId:    event._id,
@@ -145,6 +150,9 @@ router.delete('/:id', auth, async (req, res) => {
 router.patch('/:id/status', auth, async (req, res) => {
   try {
     const updatePayload = { status: req.body.status };
+    if (req.body.facultyNote !== undefined) {
+      updatePayload.facultyNote = req.body.facultyNote;
+    }
     if (req.body.status === 'approved' || req.body.status === 'rejected') {
       updatePayload.isReapprovalRequest = false;
       updatePayload.reapprovalNote = '';
@@ -152,6 +160,25 @@ router.patch('/:id/status', auth, async (req, res) => {
     const event = await Event.findByIdAndUpdate(
       req.params.id, updatePayload, { new: true }
     );
+
+    // Notify club about approval/rejection
+    try {
+      if (req.body.status === 'approved' || req.body.status === 'rejected') {
+        const Notification = require('../models/Notification');
+        const targetOrg = event.club || event.organizer;
+        if (targetOrg) {
+          await Notification.create({
+            recipient: targetOrg,
+            type: 'event_approval',
+            message: `Your event "${event.title}" was ${req.body.status} by the Faculty.`,
+            eventId: event._id
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to notify club:', err);
+    }
+
     res.json(event);
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });

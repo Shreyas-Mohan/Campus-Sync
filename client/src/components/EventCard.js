@@ -21,6 +21,8 @@ export default function EventCard({
   const [count,   setCount]   = useState(event.rsvpCount || 0);
   const [loading, setLoading] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [facultyModal, setFacultyModal] = useState({ open: false, status: '' });
+  const [facultyNote, setFacultyNote] = useState('');
 
   const handleRsvp = async () => {
     setLoading(true);
@@ -37,10 +39,10 @@ export default function EventCard({
     finally { setLoading(false); }
   };
 
-  const handleApproveStatus = async (status) => {
+  const handleApproveStatus = async (status, note) => {
     try {
       await axios.patch(
-        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${event._id}/status`, { status },
+        `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${event._id}/status`, { status, facultyNote: note },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success(`Event ${status}`);
@@ -128,6 +130,18 @@ export default function EventCard({
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 4 }}>⚠️ Edit Re-Approval Request</div>
             <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.4 }}>
                <strong style={{ color: 'var(--text)' }}>Note:</strong> {event.reapprovalNote || 'No explanation provided.'}
+            </div>
+          </div>
+        )}
+
+        {/* Faculty Note Display for Organizers */}
+        {showActions && event.facultyNote && (
+          <div style={{ background: event.status === 'rejected' ? 'rgba(var(--red-rgb),0.1)' : 'rgba(var(--green-rgb),0.1)', border: `1px solid ${event.status === 'rejected' ? 'var(--red)' : 'var(--green)'}33`, borderRadius: 6, padding: '8px 10px', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: event.status === 'rejected' ? 'var(--red)' : 'var(--green)', textTransform: 'uppercase', marginBottom: 4 }}>
+              Faculty Comment ({event.status}):
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.4 }}>
+               {event.facultyNote}
             </div>
           </div>
         )}
@@ -231,13 +245,13 @@ export default function EventCard({
           {/* Approve / Reject */}
           {showApprove && event.status === 'pending' && (
             <div style={S.btnRow}>
-              <button onClick={() => handleApproveStatus('approved')} style={S.approveBtn}>✓ Approve</button>
-              <button onClick={() => handleApproveStatus('rejected')} style={S.rejectBtn}>✗ Reject</button>
+              <button onClick={() => setFacultyModal({ open: true, status: 'approved' })} style={S.approveBtn}>✓ Approve</button>
+              <button onClick={() => setFacultyModal({ open: true, status: 'rejected' })} style={S.rejectBtn}>✗ Reject</button>
             </div>
           )}
 
-          {/* Organizer edit/delete */}
-          {showActions && (
+          {/* Organizer edit/delete (hidden if past event) */}
+          {showActions && !isPastEvent && (
             <div style={S.btnRow}>
               <button onClick={() => onEdit(event)} style={S.editBtn}>
                 <Edit2 size={12} /> Edit
@@ -249,6 +263,42 @@ export default function EventCard({
           )}
         </div>
       </div>
+
+      {/* Sleek Faculty Approval Modal */}
+      {facultyModal.open && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setFacultyModal({ open: false, status: '' }); setFacultyNote(''); }}>
+          <div style={{ background: 'var(--bg)', padding: 24, borderRadius: 16, width: '90%', maxWidth: 400, border: `1px solid var(--${facultyModal.status === 'rejected' ? 'red' : 'green'})` }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: 18, color: "var(--text)", marginBottom: 8, fontFamily: "'DM Serif Display', serif" }}>
+              {facultyModal.status === 'approved' ? 'Approve Event' : 'Reject Event'}
+            </h3>
+            <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16, lineHeight: 1.4 }}>
+              Optional: Leave a reason or feedback for the organizers.
+            </p>
+            <textarea 
+              value={facultyNote}
+              onChange={e => setFacultyNote(e.target.value)}
+              placeholder="e.g., Looks great! / Poster missing..."
+              style={{ width: '100%', padding: '12px', borderRadius: 8, background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)', minHeight: 90, marginBottom: 16, resize: 'vertical', fontSize: 14, outline: 'none' }}
+            />
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button 
+                onClick={() => { setFacultyModal({ open: false, status: '' }); setFacultyNote(''); }} 
+                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', cursor: 'pointer', fontWeight: 600 }}>
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  handleApproveStatus(facultyModal.status, facultyNote);
+                  setFacultyModal({ open: false, status: '' });
+                  setFacultyNote('');
+                }} 
+                style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: `var(--${facultyModal.status === 'rejected' ? 'red' : 'green'})`, color: '#fff', fontWeight: 600, cursor: 'pointer' }}>
+                Confirm {facultyModal.status === 'approved' ? 'Approval' : 'Rejection'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

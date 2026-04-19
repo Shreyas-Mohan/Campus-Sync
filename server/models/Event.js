@@ -11,6 +11,7 @@ const eventSchema = new mongoose.Schema({
   status:              { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   isReapprovalRequest: { type: Boolean, default: false },
   reapprovalNote:      String,
+  facultyNote:         String,
   tags:                [String],
   maxCapacity:         Number,
   rsvpCount:           { type: Number, default: 0 },

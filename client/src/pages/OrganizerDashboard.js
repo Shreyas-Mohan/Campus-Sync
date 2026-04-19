@@ -222,35 +222,42 @@ export default function OrganizerDashboard() {
     ? events.filter(e => e.organizer === user.id || e.organizerName === user.name || e.club === user.id || e?.club?._id === user.id)
     : events;
 
+  const isPastEvent = (d) => new Date(d) < new Date();
+
+  // Active events for the 'all' tab (handles faculty/club view rules)
+  const activeEvents = myEvents.filter(e => !isPastEvent(e.date));
+
   const filtered =
-    tab === 'pending'  ? myEvents.filter(e => e.status === 'pending')  :
-    tab === 'approved' ? myEvents.filter(e => e.status === 'approved') :
-    tab === 'past'     ? myEvents.filter(e => new Date(e.date) < new Date()) :
-    myEvents;
+    tab === 'pending'  ? activeEvents.filter(e => e.status === 'pending')  :
+    tab === 'approved' ? activeEvents.filter(e => e.status === 'approved') :
+    tab === 'rejected' ? activeEvents.filter(e => e.status === 'rejected') :
+    tab === 'past'     ? myEvents.filter(e => isPastEvent(e.date)) :
+    activeEvents;
 
   const stats = {
-    total:     myEvents.length,
-    approved:  myEvents.filter(e => e.status === 'approved').length,
-    pending:   myEvents.filter(e => e.status === 'pending').length,
-    past:      myEvents.filter(e => new Date(e.date) < new Date()).length,
-    totalRsvp: myEvents.reduce((s, e) => s + (e.rsvpCount || 0), 0),
+    totalActive:  activeEvents.length,
+    approved:     activeEvents.filter(e => e.status === 'approved').length,
+    pending:      activeEvents.filter(e => e.status === 'pending').length,
+    rejected:     activeEvents.filter(e => e.status === 'rejected').length,
+    past:         myEvents.filter(e => isPastEvent(e.date)).length,
+    totalRsvp:    activeEvents.reduce((s, e) => s + (e.rsvpCount || 0), 0),
   };
 
   const STAT_CARDS = isFaculty
     ? [
-        { label: 'Approved', value: stats.approved, color: "var(--green)", bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)', Icon: CheckCircle },
         { label: 'Pending Review', value: stats.pending,  color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.2)', Icon: Clock },
+        { label: 'Approved',       value: stats.approved, color: "var(--green)", bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)', Icon: CheckCircle },
       ]
     : isAdmin
     ? [
-        { label: 'Total Events', value: stats.total,    color: "var(--blue)", bg: "var(--blue-dim)",   border: 'rgba(91,141,238,0.2)',   Icon: Activity },
-        { label: 'Approved',     value: stats.approved,  color: "var(--green)", bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)',   Icon: CheckCircle },
-        { label: 'Pending',      value: stats.pending,   color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.2)',  Icon: Clock },
+        { label: 'Active Events',  value: stats.totalActive, color: "var(--blue)", bg: "var(--blue-dim)",   border: 'rgba(91,141,238,0.2)',   Icon: Activity },
+        { label: 'Approved',       value: stats.approved,    color: "var(--green)", bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)',   Icon: CheckCircle },
+        { label: 'Pending',        value: stats.pending,     color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.2)',  Icon: Clock },
       ]
     : [
-        { label: 'Total Events', value: stats.total,     color: "var(--blue)", bg: "var(--blue-dim)",   border: 'rgba(91,141,238,0.2)',   Icon: Activity },
-        { label: 'Approved',     value: stats.approved,  color: "var(--green)", bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)',   Icon: CheckCircle },
-        { label: 'Pending',      value: stats.pending,   color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.2)',  Icon: Clock }
+        { label: 'Active Events',  value: stats.totalActive, color: "var(--blue)", bg: "var(--blue-dim)",   border: 'rgba(91,141,238,0.2)',   Icon: Activity },
+        { label: 'Approved',       value: stats.approved,    color: "var(--green)", bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.2)',   Icon: CheckCircle },
+        { label: 'Pending',        value: stats.pending,     color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.2)',  Icon: Clock }
       ];
 
   return (
@@ -311,7 +318,7 @@ export default function OrganizerDashboard() {
 
         {/* ── Tabs ── */}
         <div style={S.tabs}>
-          {[['all','All Events'],['pending','Pending'],['approved','Approved'],['past','Past Events']].map(([val, lbl]) => (
+          {[['all','Active Events'],['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['past','Past Events']].map(([val, lbl]) => (
             <button key={val} onClick={() => setTab(val)}
               style={{ ...S.tabBtn, ...(tab === val ? S.tabBtnOn : {}) }}>
               {lbl}
