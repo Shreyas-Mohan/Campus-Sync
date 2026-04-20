@@ -233,7 +233,6 @@ const BS = {
 /* ─── Navbar ─── */
 export default function Navbar({ title }) {
   const { user, token, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const navigate  = useNavigate();
   const [scrolled, setScrolled] = useState(false);
 
@@ -278,13 +277,6 @@ export default function Navbar({ title }) {
 
       {/* ── Right ── */}
       <div style={S.right}>
-        {/* Theme Toggle */}
-        <button onClick={toggleTheme} className="theme-toggle-btn" title="Toggle Theme" style={{ border: 'none', background: 'transparent' }}>
-          <div className="icon-wrap" key={isDark ? 'dark' : 'light'} style={{ display: 'flex' }}>
-            {isDark ? <Sun size={18} color="var(--muted)" /> : <Moon size={18} color="var(--text2)" />}
-          </div>
-        </button>
-
         {/* Live notification bell */}
         <NotificationBell token={token} />
 

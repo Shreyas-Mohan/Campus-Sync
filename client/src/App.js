@@ -43,12 +43,9 @@ const PrivateRoute = ({ children, role, roles }) => {
 };
 
 function ToasterWithTheme() {
-  const { isDark } = useTheme();
   return (
     <Toaster position="top-right" toastOptions={{
-      style: isDark
-        ? { background: '#1c1f27', color: '#f0f0f0', border: '1px solid #2a2d36' }
-        : { background: '#ffffff', color: '#0d1526', border: '1px solid #d1daf0', boxShadow: '0 4px 20px rgba(13,21,38,0.1)' },
+      style: { background: '#1c1f27', color: '#f0f0f0', border: '1px solid #2a2d36' },
     }} />
   );
 }
