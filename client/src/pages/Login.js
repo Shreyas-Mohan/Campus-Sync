@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Zap, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
@@ -55,16 +56,31 @@ export default function Login() {
 
   return (
     <div style={S.page}>
+      <style>{`
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+          display: none;
+        }
+      `}</style>
       {/* Background Overlay for blur and darkening */}
       <div style={S.overlay} />
 
-      <div style={S.card}>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={S.card}
+      >
         {/* Brand Logo & Title */}
         <div style={S.brandWrap}>
-          <div style={S.logoWrap}>
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={S.logoWrap}
+          >
             <div style={S.logo}><Zap size={24} fill="#fff" color="#fff" /></div>
             <div style={S.logoPulse} />
-          </div>
+          </motion.div>
           <h1 style={S.brandTitle}>CampusSync</h1>
           {/* Your Full Project Title */}
           <p style={S.matrixSubtitle}>Unified College Club & Event Matrix</p>
@@ -73,11 +89,16 @@ export default function Login() {
         <h2 style={S.title}>{forgotMode ? (resetStage ? 'Reset Password' : 'Forgot Password') : 'Member Login'}</h2>
         <p style={S.sub}>{forgotMode ? 'Recover your access' : 'Sign in to your account'}</p>
 
+        <AnimatePresence mode="wait">
         {forgotMode ? (
           resetStage ? (
-            <form onSubmit={handleResetSubmit} style={S.form}>
+            <motion.form 
+              key="reset"
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+              onSubmit={handleResetSubmit} style={S.form}
+            >
               <div style={S.field}>
-                <label style={S.label}><Mail size={12} style={{ marginRight: 5 }} /> Email</label>
+                <label style={S.label}><Mail size={12} style={{ marginRight: 5 }} />College Email</label>
                 <div style={S.inputWrap}>
                   <input type="email" value={resetForm.email} readOnly style={S.input} />
                 </div>
@@ -94,44 +115,54 @@ export default function Login() {
                   <input type="password" placeholder="••••••••" value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} required style={S.input} />
                 </div>
               </div>
-              <button type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
                 {loading ? <span style={S.spinnerInline} /> : <><span>Update Password</span><ArrowRight size={16} /></>}
-              </button>
+              </motion.button>
               <div style={S.footer}>
                 <span onClick={() => {setForgotMode(false); setResetStage(false);}} style={{...S.link, cursor: 'pointer'}}>Back to Login</span>
               </div>
-            </form>
+            </motion.form>
           ) : (
-            <form onSubmit={handleForgotSubmit} style={S.form}>
+            <motion.form 
+              key="forgot"
+              initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}
+              onSubmit={handleForgotSubmit} style={S.form}
+            >
               <div style={S.field}>
                 <label style={S.label}><Mail size={12} style={{ marginRight: 5 }} /> Verification Email</label>
                 <div style={S.inputWrap}>
                   <input type="email" placeholder="you@campus.edu" value={resetForm.email} onChange={e => setResetForm({ ...resetForm, email: e.target.value })} required style={S.input} />
                 </div>
               </div>
-              <button type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" style={{ ...S.btn, opacity: loading ? 0.75 : 1 }} disabled={loading}>
                 {loading ? <span style={S.spinnerInline} /> : <><span>Send OTP</span><ArrowRight size={16} /></>}
-              </button>
+              </motion.button>
               <div style={S.footer}>
                 <span onClick={() => setForgotMode(false)} style={{...S.link, cursor: 'pointer'}}>Back to Login</span>
               </div>
-            </form>
+            </motion.form>
           )
         ) : (
-          <form onSubmit={handleSubmit} style={S.form}>
+          <motion.form 
+            key="login"
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+            onSubmit={handleSubmit} style={S.form}
+          >
             {/* Email */}
             <div style={S.field}>
               <label style={S.label}>
-                <Mail size={12} style={{ marginRight: 5 }} /> Email
+                <Mail size={12} style={{ marginRight: 5 }} />College Email
               </label>
               <div style={S.inputWrap}>
                 <input
                   type="email"
-                  placeholder="you@campus.edu"
+                  placeholder="xyz@iiitm.ac.in"
                   value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   required
-                  style={S.input}
+                  style={{...S.input, transition: 'all 0.3s ease'}}
+                  onFocus={e => { e.target.style.borderColor = 'rgba(138,43,226,0.6)'; e.target.style.boxShadow = '0 0 0 4px rgba(138,43,226,0.1)' }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.target.style.boxShadow = 'none' }}
                 />
               </div>
             </div>
@@ -148,7 +179,9 @@ export default function Login() {
                   value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
                   required
-                  style={{ ...S.input, paddingRight: 44 }}
+                  style={{ ...S.input, paddingRight: 44, transition: 'all 0.3s ease' }}
+                  onFocus={e => { e.target.style.borderColor = 'rgba(138,43,226,0.6)'; e.target.style.boxShadow = '0 0 0 4px rgba(138,43,226,0.1)' }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)'; e.target.style.boxShadow = 'none' }}
                 />
                 <button type="button" onClick={() => setShowPass(p => !p)} style={S.eyeBtn}>
                   {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -157,10 +190,12 @@ export default function Login() {
             </div>
             
             <div style={{ textAlign: 'right', marginTop: '-12px', marginBottom: '24px' }}>
-              <span onClick={() => setForgotMode(true)} style={{...S.link, fontSize: 13, cursor: 'pointer'}}>Forgot Password?</span>
+              <span onClick={() => setForgotMode(true)} style={{...S.link, fontSize: 13, cursor: 'pointer', color: 'rgba(138,43,226,0.9)'}}>Forgot Password?</span>
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.98 }}
               type="submit"
               style={{ ...S.btn, opacity: loading ? 0.75 : 1 }}
               disabled={loading}
@@ -170,20 +205,21 @@ export default function Login() {
               ) : (
                 <><span>Sign In</span><ArrowRight size={16} /></>
               )}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
         )}
+        </AnimatePresence>
 
         {!forgotMode && (
-          <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
             <div style={S.divider}><span style={S.dividerText}>new to campussync?</span></div>
 
             <Link to="/register" style={S.registerBtn}>
               Create a free account
             </Link>
-          </>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Decorative Matrix Footer */}
       <div style={S.pageFooter}>
@@ -203,7 +239,7 @@ const S = {
     justifyContent: 'center',
     padding: 24,
     // Add your institute picture from the public folder
-    backgroundImage: `url('/IMG-20240905-WA0003.jpg')`,
+    backgroundImage: `url('/WhatsApp Image 2026-04-20 at 10.54.32 PM.jpeg')`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     position: 'relative',
@@ -246,17 +282,26 @@ const S = {
     color: '#fff',
     marginTop: 14,
     letterSpacing: 1,
+    textShadow: '0 2px 10px rgba(138,43,226,0.4)',
+  },
+  matrixSubtitle: {
+    fontSize: 12,
+    color: 'rgba(138,43,226,0.8)',
+    fontWeight: 600,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
   logoWrap: {
     position: 'relative',
     width: 60,
     height: 60,
     borderRadius: '16px',
-    background: 'linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%)',
+    background: 'linear-gradient(135deg, #8a2be2 0%, #4a0e8f 100%)', // VIOLET
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 8px 24px rgba(var(--primary-rgb), 0.5)',
+    boxShadow: '0 8px 24px rgba(138,43,226,0.5)',
     zIndex: 1,
   },
   logo: {
@@ -268,9 +313,9 @@ const S = {
     position: 'absolute',
     inset: -4,
     borderRadius: '20px',
-    background: 'var(--primary)',
-    opacity: 0.3,
-    filter: 'blur(8px)',
+    background: '#8a2be2',
+    opacity: 0.4,
+    filter: 'blur(10px)',
     animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
   },
 
@@ -293,8 +338,8 @@ const S = {
   },
   inputWrap: { position: 'relative' },
   input: {
-    background: "rgba(255, 255, 255, 0.1)",
-    border: '1.5px solid rgba(255, 255, 255, 0.2)',
+    background: "rgba(138,43,226, 0.03)",
+    border: '1.5px solid rgba(255, 255, 255, 0.1)',
     color: "#fff", padding: '12px 16px',
     borderRadius: 10, width: '100%', fontSize: 14,
     transition: 'all 0.2s', outline: 'none',
@@ -308,52 +353,46 @@ const S = {
 
   btn: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-    background: 'linear-gradient(135deg,var(--blue) 0%,var(--blue2) 100%)',
-    color: '#fff', border: 'none', borderRadius: 10,
-    padding: '13px', fontSize: 15, fontWeight: 600,
-    marginTop: 6, transition: 'all 0.2s',
-    boxShadow: '0 4px 20px rgba(91,141,238,0.4)',
+    background: 'linear-gradient(135deg, #8a2be2 0%, #6b21a8 100%)', // VIOLET GRADIENT
+    color: '#fff', border: 'none', padding: '14px', borderRadius: 10,
+    fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+    boxShadow: '0 4px 15px rgba(138,43,226,0.3)',
   },
   spinnerInline: {
     width: 20, height: 20,
-    border: '2px solid rgba(255,255,255,0.3)',
+    border: '2.5px solid rgba(255,255,255,0.3)',
     borderTopColor: '#fff', borderRadius: '50%',
-    animation: 'spin 0.7s linear infinite', display: 'block',
+    animation: 'spin 0.8s linear infinite',
   },
+  link: { textDecoration: 'none', color: '#fff', fontWeight: 600, transition: 'color 0.2s', ':hover': { color: '#8a2be2' } },
 
   divider: {
-    margin: '24px 0 20px', display: 'flex', alignItems: 'center', gap: 12, opacity: 0.6
+    position: 'relative', textAlign: 'center', margin: '32px 0 24px',
+    '::before': {
+      content: '""', position: 'absolute', top: '50%', left: 0, right: 0,
+      borderTop: '1px solid rgba(255, 255, 255, 0.1)', zIndex: 0,
+    }
   },
   dividerText: {
-    color: "rgba(255,255,255,0.5)", fontSize: 11, textTransform: 'uppercase',
-    letterSpacing: '0.08em', whiteSpace: 'nowrap',
-    flex: 1, textAlign: 'center',
-    borderTop: '1px solid rgba(255,255,255,0.1)',
-    paddingTop: 12, marginTop: -12,
+    background: 'transparent', padding: '0 12px', color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 12, position: 'relative', zIndex: 1, textTransform: 'uppercase', letterSpacing: '0.1em',
   },
 
   registerBtn: {
-    display: 'block',
-    background: "rgba(255, 255, 255, 0.05)",
-    border: '1.5px solid rgba(255, 255, 255, 0.1)',
-    color: "#fff", borderRadius: 10,
-    padding: '12px', fontSize: 14, fontWeight: 500,
-    textAlign: 'center', transition: 'all 0.2s', textDecoration: 'none'
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(138,43,226, 0.1)', 
+    border: '1.5px solid rgba(138,43,226, 0.3)',
+    color: '#fff', padding: '14px', borderRadius: 10,
+    fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+    textDecoration: 'none', textAlign: 'center',
+    boxShadow: '0 0 10px rgba(138,43,226, 0.05) inset',
   },
-  // Add a subtle bottom-page footer for extra "Matrix" feel
   pageFooter: {
-    position: 'absolute',
-    bottom: 30,
-    display: 'flex',
-    gap: 40,
-    zIndex: 1,
-    opacity: 0.5,
+    position: 'absolute', bottom: 20, display: 'flex', gap: 24, zIndex: 1,
   },
   footerClaim: {
-    fontSize: 10,
-    color: '#fff',
-    textTransform: 'uppercase',
-    letterSpacing: '2px',
-    fontWeight: 500,
+    color: 'rgba(255, 255, 255, 0.3)', fontSize: 11,
+    letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 600,
+    textShadow: '0 0 8px rgba(138,43,226, 0.4)'
   }
 };

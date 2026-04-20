@@ -54,9 +54,9 @@ npm start
 
 ### v1.2.0 - The Architecture & UX Audit Update (Latest)
 * **Access Control:** Fixed Faculty Dashboard routing, unlocking role-specific event approval panels.
-* **Server-Side Integrity:** Hardened RSVP limits to prevent network race conditions on sold-out events.
+* **Server-Side Integrity:** Hardened RSVP limits to prevent network race conditions on sold-out events. Added missing single event endpoints and tightened RSVP authorization endpoints to securely support independent organizers.
 * **Database Optimization:** Implemented cascade deletions for Comments and Notifications to prevent orphan DB records and frontend crashes.
-* **Global UX Enhancements:** Added an Axios interceptor for graceful handling of expired JWT tokens, standardized event status via server time (fixing timezone bias), and expanded skeleton loaders.
+* **Global UX Enhancements:** Added an Axios interceptor for graceful handling of expired JWT tokens, standardized event status via server time (fixing timezone bias), expanded skeleton loaders, resolved native browser password toggle UI conflicts, and refactored the Student Feed to natively integrate "Picked for you" interest-based filtering.
 
 ### v1.1.0 - The Polish Update
 * **Cloudinary Integration:** Added high-performance image hosting for Event Posters, Club Logos, and User Avatars.

@@ -19,6 +19,15 @@ const ClubSchema = new mongoose.Schema({
     name: { type: String }
   }],
   
+  managers: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: { type: String, enum: ['admin', 'editor', 'event_manager'], default: 'editor' },
+    permissions: {
+      canPostEvents: { type: Boolean, default: true },
+      canEditProfile: { type: Boolean, default: false }
+    }
+  }],
+  
   socialLinks: {
     instagram: { type: String, default: '' },
     linkedin: { type: String, default: '' },

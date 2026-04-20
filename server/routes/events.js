@@ -22,6 +22,45 @@ router.get('/all', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });
 
+// Get current club's draft event
+router.get('/draft', auth, async (req, res) => {
+  if (req.user.role !== 'club') return res.status(403).json({ msg: 'Only clubs have drafts' });
+  try {
+    const draft = await Event.findOne({ club: req.user.id, status: 'draft' }).sort({ createdAt: -1 });
+    if (!draft) return res.status(404).json({ msg: 'No draft found' });
+    res.json(draft);
+  } catch (e) { res.status(500).json({ msg: e.message }); }
+});
+
+// Create/Update draft event
+router.post('/draft', auth, async (req, res) => {
+  if (req.user.role !== 'club') return res.status(403).json({ msg: 'Only clubs have drafts' });
+  try {
+    const existing = await Event.findOne({ club: req.user.id, status: 'draft' });
+    const eventData = { ...req.body, status: 'draft', club: req.user.id, clubName: req.user.name };
+    if (existing) {
+      const updated = await Event.findByIdAndUpdate(existing._id, eventData, { new: true });
+      return res.json(updated);
+    }
+    const drafting = new Event(eventData);
+    await drafting.save();
+    res.json(drafting);
+  } catch (e) {
+    res.status(500).json({ msg: e.message });
+  }
+});
+
+// Delete current club's draft event
+router.delete('/draft', auth, async (req, res) => {
+  if (req.user.role !== 'club') return res.status(403).json({ msg: 'Unauthorized' });
+  try {
+    await Event.deleteMany({ club: req.user.id, status: 'draft' });
+    res.json({ msg: 'Draft discarded' });
+  } catch (e) {
+    res.status(500).json({ msg: e.message });
+  }
+});
+
 // Create event
 router.post('/', auth, async (req, res) => {
   try {
@@ -43,9 +82,9 @@ router.post('/', auth, async (req, res) => {
     }
     const event = await Event.create(eventData);
 
-    // Notify ALL followers of this club!
+    // Notify ALL followers of this club! (Only if NOT draft)
     try {
-      if (req.user.role === 'club') {
+      if (req.user.role === 'club' && event.status !== 'draft') {
         const Club = require('../models/Club');
         const clubUser = await Club.findById(req.user.id).select('name followers');
         if (clubUser && clubUser.followers && clubUser.followers.length > 0) {
@@ -65,6 +104,18 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json(event);
   } catch (e) { res.status(500).json({ msg: e.message }); }
+});
+
+// Get single event
+router.get('/:id', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).populate('club', 'name slug email logo');
+    if (!event) return res.status(404).json({ msg: 'Event not found' });
+    res.json(event);
+  } catch (e) {
+    if (e.kind === 'ObjectId') return res.status(404).json({ msg: 'Event not found' });
+    res.status(500).json({ msg: e.message });
+  }
 });
 
 // Update event (club who owns it only)

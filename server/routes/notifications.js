@@ -35,4 +35,11 @@ router.patch('/read-all', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ msg: e.message }); }
 });
 
+router.delete('/clear', auth, async (req, res) => {
+  try {
+    await Notification.deleteMany({ recipient: req.user.id });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ msg: e.message }); }
+});
+
 module.exports = router;

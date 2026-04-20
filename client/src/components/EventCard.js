@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Users, CheckCircle2, Edit2, Trash2, Eye, Building, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +15,7 @@ export default function EventCard({
   showActions,
   onEdit,
   onDelete,
+  onViewAttendees,
 }) {
   const { token } = useAuth();
   const navigate  = useNavigate();
@@ -97,15 +99,16 @@ export default function EventCard({
   const isSoldOut = event.maxCapacity && (count >= event.maxCapacity);
 
   return (
-    <div
+    <motion.div
+      layout
       style={{
         ...S.card,
-        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
         boxShadow: hovered
-          ? `0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px ${cc.color}22`
+          ? `0 20px 60px rgba(138,43,226,0.15), 0 0 0 1px ${cc.color}22`
           : '0 4px 20px rgba(0,0,0,0.3)',
-        borderColor: hovered ? cc.color + '33' : "var(--border)",
+        borderColor: hovered ? 'rgba(138,43,226,0.3)' : "var(--border)",
       }}
+      whileHover={{ y: -4 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -261,6 +264,11 @@ export default function EventCard({
               </button>
             </div>
           )}
+          {showActions && (
+            <button onClick={(e) => { e.stopPropagation(); if (onViewAttendees) onViewAttendees(); }} style={S.editBtn}>
+              <Users size={12} /> View RSVPs
+            </button>
+          )}
         </div>
       </div>
 
@@ -299,7 +307,7 @@ export default function EventCard({
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -308,10 +316,19 @@ const S = {
     background: "var(--bg2)",
     border: "1px solid var(--border)",
     borderRadius: 16,
-    overflow: 'hidden',
-    display: 'flex', flexDirection: 'column',
-    transition: 'all 0.25s ease',
-    cursor: 'default',
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    transition: "all 0.3s ease",
+    cursor: "pointer",
+    position: "relative",
+    height: "100%",
+    boxShadow: "0 4px 15px rgba(138,43,226,0.05)",
+  },
+  cardHover: {
+    transform: "translateY(-4px)",
+    boxShadow: "0 12px 30px rgba(138,43,226,0.15)",
+    borderColor: "rgba(138,43,226,0.3)",
   },
 
   // Header strip

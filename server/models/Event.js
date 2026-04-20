@@ -8,7 +8,7 @@ const eventSchema = new mongoose.Schema({
   venue:               { type: String, required: true },
   club:                { type: mongoose.Schema.Types.ObjectId, ref: 'Club' },
   clubName:            String,
-  status:              { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  status:              { type: String, enum: ['draft', 'pending', 'approved', 'rejected'], default: 'pending' },
   isReapprovalRequest: { type: Boolean, default: false },
   reapprovalNote:      String,
   facultyNote:         String,

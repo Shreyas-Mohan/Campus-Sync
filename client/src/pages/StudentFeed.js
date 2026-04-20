@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard';
 import { useAuth } from '../context/AuthContext';
-import { Search, Compass, Bookmark, Sparkles, TrendingUp, ChevronRight } from 'lucide-react';
+import { Search, Compass, Bookmark, Sparkles, TrendingUp, ChevronRight, ChevronLeft } from 'lucide-react';
 
-const CATS = ['All','Tech','Music','Sports','Culture','Business','Art','Science','Social'];
-const CAT_ICONS = { All:'✦', Tech:'💻', Music:'🎵', Sports:'⚽', Culture:'🎭', Business:'💼', Art:'🎨', Science:'🔬', Social:'🎉' };
-const CAT_COLORS = { Tech:"var(--blue)", Music:"var(--purple)", Sports:"var(--green)", Culture:"var(--orange)", Business:'#60a5fa', Art:"var(--pink)", Science:"var(--teal)", Social:'#fbbf24' };
+const CATS = ['All', 'Picked for you', 'Tech', 'Music', 'Sports', 'Culture', 'Business', 'Art', 'Science', 'Social'];
+const CAT_ICONS = { All:'✦', 'Picked for you':'✨', Tech:'💻', Music:'🎵', Sports:'⚽', Culture:'🎭', Business:'💼', Art:'🎨', Science:'🔬', Social:'🎉' };
+const CAT_COLORS = { Tech:"#8a2be2", 'Picked for you':'#8a2be2', Music:"#8a2be2", Sports:"#8a2be2", Culture:"#8a2be2", Business:'#8a2be2', Art:"#8a2be2", Science:"#8a2be2", Social:'#8a2be2' }; // Standardize on violet
 
 export default function StudentFeed() {
   const { token, user }  = useAuth();
@@ -20,6 +21,24 @@ export default function StudentFeed() {
   const [tab,       setTab]       = useState('discover'); // 'discover' | 'past' | 'mine'
   const [loading,   setLoading]   = useState(true);
   const [serverTime, setServerTime] = useState(Date.now());
+  const catScrollRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  const handleScroll = () => {
+    if (catScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = catScrollRef.current;
+      setShowLeftArrow(scrollLeft > 10);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  const scrollCats = (dir) => {
+    if (catScrollRef.current) {
+      const scrollAmount = 240;
+      catScrollRef.current.scrollBy({ left: dir === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -63,7 +82,12 @@ export default function StudentFeed() {
   };
 
   const filtered = events.filter(e => {
-    const matchCat    = cat === 'All' || e.category === cat;
+    let matchCat = true;
+    if (cat === 'Picked for you') {
+      matchCat = user?.interests?.length ? user.interests.includes(e.category) : false;
+    } else if (cat !== 'All') {
+      matchCat = e.category === cat;
+    }
     const matchSearch = e.title.toLowerCase().includes(search.toLowerCase())
       || e.description?.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -73,9 +97,6 @@ export default function StudentFeed() {
   const activeEvents = filtered.filter(e => !isPastEvent(e.date));
   const pastEvents = filtered.filter(e => isPastEvent(e.date));
 
-  const forYou = user?.interests?.length
-    ? activeEvents.filter(e => user.interests.includes(e.category))
-    : [];
 
   const upcoming = [...activeEvents]
     .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -100,14 +121,14 @@ export default function StudentFeed() {
       <Navbar title="Discover" />
 
       {/* ── Hero Banner ─────────────────────────────────────────────── */}
-      <div style={S.hero}>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={S.hero}>
         <div style={S.heroGlow1} /><div style={S.heroGlow2} />
         <div style={S.heroContent}>
           <div style={S.heroHeaderRow}>
             <div>
-              <div style={S.greetingChip}>
+              <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} style={S.greetingChip}>
                 <Sparkles size={12} /> Campus Feed
-              </div>
+              </motion.div>
               <h1 style={S.heroH}>
                 {greeting}, <span style={S.heroName}>
                   {(() => {
@@ -148,7 +169,7 @@ export default function StudentFeed() {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       <div style={S.container}>
         <div style={S.mainColumn}>
@@ -181,57 +202,73 @@ export default function StudentFeed() {
           </div>
 
           {/* ── DISCOVER tab ── */}
+          <AnimatePresence mode="popLayout">
           {tab === 'discover' && (
-            <>
+            <motion.div key="discover" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               {/* Category filter pills */}
-              <div style={S.catRow}>
-                {CATS.map(c => {
-                  const active = cat === c;
-                  const col = CAT_COLORS[c] || "var(--blue)";
-                  return (
-                    <button key={c} onClick={() => setCat(c)}
-                      style={{
-                        ...S.catPill,
-                        ...(active ? {
-                          background: col + '18',
-                          border: `1.5px solid ${col}55`,
-                          color: col,
-                        } : {}),
-                      }}>
-                      {CAT_ICONS[c]} {c}
-                    </button>
-                  );
-                })}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginBottom: 32, gap: 12 }}>
+                <AnimatePresence>
+                  {showLeftArrow && (
+                    <motion.button 
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      onClick={() => scrollCats('left')}
+                      style={{ ...S.scrollBtn, position: 'relative', flexShrink: 0 }}
+                    >
+                      <ChevronLeft size={18} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                
+                <div 
+                  ref={catScrollRef}
+                  style={{ ...S.catRow, marginBottom: 0, flex: 1 }}
+                  className="no-scrollbar"
+                  onScroll={handleScroll}
+                >
+                  {CATS.map(c => {
+                    const active = cat === c;
+                    const col = CAT_COLORS[c] || "#8a2be2";
+                    return (
+                      <button key={c} onClick={() => setCat(c)}
+                        style={{
+                          ...S.catPill,
+                          ...(active ? {
+                            background: col + '18',
+                            border: `1.5px solid ${col}55`,
+                            color: col,
+                          } : {}),
+                        }}>
+                        {CAT_ICONS[c]} {c}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <AnimatePresence>
+                  {showRightArrow && (
+                    <motion.button 
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      onClick={() => scrollCats('right')}
+                      style={{ ...S.scrollBtn, position: 'relative', flexShrink: 0 }}
+                    >
+                      <ChevronRight size={18} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {/* For You section */}
-              {forYou.length > 0 && !search && cat === 'All' && (
-                <section style={{ marginBottom: 40 }}>
-                  <div style={S.sectionHead}>
-                    <div>
-                      <h2 style={S.sectionTitle}>✦ Picked for you</h2>
-                      <p style={S.sectionSub}>Based on your interests</p>
-                    </div>
-                    <button style={S.seeAll}>See all <ChevronRight size={13} /></button>
-                  </div>
-                  {loading
-                    ? <div style={S.grid}>{[1,2].map(k => <SkeletonCard key={k} />)}</div>
-                    : <div style={S.grid}>
-                        {forYou.slice(0, 2).map(e => (
-                          <EventCard key={e._id} event={e}
-                            initialRsvpd={myRsvpIds.has(e._id)}
-                            onRsvpToggle={handleRsvpToggle} />
-                        ))}
-                      </div>}
-                </section>
-              )}
+
 
               {/* All Events */}
               <section>
                 <div style={S.sectionHead}>
                   <div>
                     <h2 style={S.sectionTitle}>
-                      {cat !== 'All' ? `${CAT_ICONS[cat]} ${cat} events` : 'All events'}
+                      {cat !== 'All' ? `${CAT_ICONS[cat]} ${cat}${cat === 'Picked for you' ? '' : ' events'}` : 'All events'}
                     </h2>
                     {!loading && (
                       <p style={S.sectionSub}>{activeEvents.length} event{activeEvents.length !== 1 ? 's' : ''} found</p>
@@ -252,21 +289,25 @@ export default function StudentFeed() {
                     </button>
                   </div>
                 ) : (
-                  <div style={S.grid}>
+                  <motion.div style={S.grid} layout>
                     {activeEvents.map(e => (
-                      <EventCard key={e._id} event={e}
-                        initialRsvpd={myRsvpIds.has(e._id)}
-                        onRsvpToggle={handleRsvpToggle} />
+                      <motion.div key={e._id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+                        <EventCard event={e}
+                          initialRsvpd={myRsvpIds.has(e._id)}
+                          onRsvpToggle={handleRsvpToggle} />
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 )}
               </section>
-            </>
+            </motion.div>
           )}
+          </AnimatePresence>
 
           {/* ── PAST EVENTS tab ── */}
+          <AnimatePresence mode="popLayout">
           {tab === 'past' && (
-            <section>
+            <motion.section key="past" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               <div style={S.sectionHead}>
                 <div>
                   <h2 style={S.sectionTitle}>⏳ Past Events</h2>
@@ -283,20 +324,24 @@ export default function StudentFeed() {
                   <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>No past events</p>
                 </div>
               ) : (
-                <div style={S.grid}>
+                <motion.div style={S.grid} layout>
                   {pastEvents.map(e => (
-                    <EventCard key={e._id} event={e}
-                      initialRsvpd={myRsvpIds.has(e._id)}
-                      onRsvpToggle={handleRsvpToggle} />
+                    <motion.div key={e._id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+                        <EventCard event={e}
+                          initialRsvpd={myRsvpIds.has(e._id)}
+                          onRsvpToggle={handleRsvpToggle} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
-            </section>
+            </motion.section>
           )}
+          </AnimatePresence>
 
           {/* ── MY EVENTS tab ── */}
+          <AnimatePresence mode="popLayout">
           {tab === 'mine' && (
-            <section>
+            <motion.section key="mine" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               <div style={S.sectionHead}>
                 <div>
                   <h2 style={S.sectionTitle}>📅 Events you're attending</h2>
@@ -319,16 +364,19 @@ export default function StudentFeed() {
                   </button>
                 </div>
               ) : (
-                <div style={S.grid}>
+                <motion.div style={S.grid} layout>
                   {myEvents.map(e => (
-                    <EventCard key={e._id} event={e}
-                      initialRsvpd={true}
-                      onRsvpToggle={handleRsvpToggle} />
+                    <motion.div key={e._id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+                      <EventCard event={e}
+                        initialRsvpd={true}
+                        onRsvpToggle={handleRsvpToggle} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
-            </section>
+            </motion.section>
           )}
+          </AnimatePresence>
         </div>
 
         {/* ── SECOND COLUMN (Sidebar) ── */}
@@ -479,8 +527,17 @@ const S = {
   },
 
   catRow: {
-    display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 32,
-    paddingBottom: 12, // Increased padding so scrollbar doesn't overlap pills
+    display: 'flex', gap: 8, overflowX: 'auto', 
+    padding: '4px 0 12px',
+    scrollbarWidth: 'none', // for Firefox
+    msOverflowStyle: 'none', // for IE/Edge
+  },
+  scrollBtn: {
+    background: 'var(--bg2)', border: '1px solid var(--border)',
+    color: 'var(--text)', borderRadius: '50%', width: 32, height: 32,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+    transition: 'all 0.2s', zIndex: 10,
   },
   catPill: {
     display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,

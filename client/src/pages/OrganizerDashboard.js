@@ -4,8 +4,8 @@ import toast from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
-import { PlusCircle, X, CheckCircle, Clock, Upload, Link as LinkIcon, FileText, User, Activity, BarChart2, Zap, Compass, ChevronRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { PlusCircle, X, CheckCircle, Clock, Upload, Link as LinkIcon, FileText, User, Activity, BarChart2, Zap, Compass, ChevronRight, PenTool, Search } from 'lucide-react';
 
 const CATS = ['Tech','Music','Sports','Culture','Business','Art','Science','Social'];
 
@@ -28,19 +28,10 @@ const fileToBase64 = (file) =>
 
 export default function OrganizerDashboard() {
   const { token, user } = useAuth();
+  const navigate = useNavigate();
   const [events,        setEvents]        = useState([]);
-  const [modal,         setModal]         = useState(false);
-  const [clubModal,     setClubModal]     = useState(false);
-  const [editData,      setEditData]      = useState(null);
   const [tab,           setTab]           = useState('all');
-  const [form,          setForm]          = useState(BLANK);
-  const [posterPreview, setPosterPreview] = useState(null);
   const [submitting,    setSubmitting]    = useState(false);
-  const [clubForm,      setClubForm]      = useState({
-    description: '', coverImage: '', logo: '', isRecruiting: false,
-    socialLinks: { instagram: '', linkedin: '', website: '' },
-    coreTeam: [] // we can start with empty array if they want to edit later, or build a simple string to object map
-  });
 
   const isFaculty   = user?.role === 'faculty';
   const isOrganizer = user?.role === 'organizer' || user?.role === 'club';
@@ -56,164 +47,16 @@ export default function OrganizerDashboard() {
     } catch {}
   };
 
-  const fetchClubProfile = async () => {
-    if (!isClub) return;
-    try {
-      const { data } = await axios.get(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setClubForm({
-        description: data.description || '',
-        coverImage: data.coverImage || '',
-        logo: data.logo || '',
-        isRecruiting: data.isRecruiting || false,
-        socialLinks: data.socialLinks || { instagram: '', linkedin: '', website: '' }
-      });
-    } catch {}
-  };
-
   useEffect(() => { 
     fetchEvents(); 
-    if (isClub) fetchClubProfile();
   }, [isClub]);
 
-  const setHead = (head, field, value) =>
-    setForm(f => ({ ...f, [head]: { ...f[head], [field]: value } }));
-
-  const handlePosterChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const base64 = await fileToBase64(file);
-      setForm(f => ({ ...f, poster: base64 }));
-      setPosterPreview(base64);
-    } catch { toast.error('Failed to read image'); }
-  };
-
-  // Draft Sync Logic
-  useEffect(() => {
-    if (modal && !editData) {
-      if (form !== BLANK) {
-        localStorage.setItem('eventDraft', JSON.stringify(form));
-      }
-    }
-  }, [form, modal, editData]);
-
-  const restoreDraft = () => {
-    const draft = localStorage.getItem('eventDraft');
-    if (draft) {
-      try {
-        const parsed = JSON.parse(draft);
-        setForm(parsed);
-        setPosterPreview(parsed.poster || null);
-        toast.success("Draft restored!");
-      } catch (e) { toast.error('Failed to restore draft'); }
-    }
-  };
-
-  const clearDraft = () => {
-    localStorage.removeItem('eventDraft');
-    setForm(BLANK);
-    setPosterPreview(null);
-  };
-
   const openCreate = () => {
-    setEditData(null); 
-    
-    // Check if there is an existing draft, prefill if possible, else BLANK
-    const draft = localStorage.getItem('eventDraft');
-    if (draft) {
-      try {
-        const parsed = JSON.parse(draft);
-        setForm(parsed);
-        setPosterPreview(parsed.poster || null);
-      } catch (e) {
-        setForm(BLANK); setPosterPreview(null);
-      }
-    } else {
-      setForm(BLANK); setPosterPreview(null); 
-    }
-    
-    setModal(true);
+    navigate('/create-event');
   };
 
   const openEdit = (event) => {
-    setEditData(event);
-    
-    // Proper local datetime prepopulation to keep the same timezone context 
-    let localDatetimeString = '';
-    if (event.date) {
-      const d = new Date(event.date);
-      localDatetimeString = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-    }
-
-    setForm({
-      title:               event.title,
-      description:         event.description         || '',
-      detailedDescription: event.detailedDescription || '',
-      category:            event.category            || 'Tech',
-      date:                localDatetimeString,
-      venue:               event.venue,
-      tags:                event.tags?.join(', ')    || '',
-      maxCapacity:         event.maxCapacity          || '',
-      poster:              event.poster               || '',
-      applicationLink:     event.applicationLink      || '',
-      eventHead1:          event.eventHead1           || { name: '', rollNo: '', contact: '' },
-      eventHead2:          event.eventHead2           || { name: '', rollNo: '', contact: '' },
-      needsReapproval: false,
-      reapprovalNote: ''
-    });
-    setPosterPreview(event.poster || null);
-    setModal(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    
-    // Fix: Convert the form.date (which is in local browser time) to a proper ISO string 
-    // before sending to the backend, preventing server-side timezone misalignment.
-    const localDate = new Date(form.date);
-    const finalDateStr = localDate.toISOString();
-
-    const payload = {
-      ...form,
-      date: finalDateStr,
-      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
-      organizerName: user.name,
-    };
-    try {
-      if (editData) {
-        await axios.put(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/events/${editData._id}`, payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success(payload.needsReapproval ? 'Edit submitted for faculty review!' : 'Event updated successfully! ✨');
-      } else {
-        await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`, payload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success('Event submitted for approval! 🎉');
-      }
-      setModal(false);
-      fetchEvents();
-    } catch (err) { toast.error(err.response?.data?.msg || 'Failed'); }
-    finally { setSubmitting(false); }
-  };
-
-  const handleClubSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      await axios.put(`${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/clubs/${user.id}`, clubForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Club profile updated successfully!');
-      setClubModal(false);
-    } catch (err) {
-      toast.error(err.response?.data?.msg || 'Failed to update profile');
-    } finally {
-      setSubmitting(false);
-    }
+    navigate('/create-event', { state: { editData: event } });
   };
 
   const handleDelete = (id) => setEvents(prev => prev.filter(e => e._id !== id));
@@ -303,7 +146,7 @@ export default function OrganizerDashboard() {
           {isOrganizer && (
             <>
               {isClub && (
-                <button onClick={() => setClubModal(true)} style={{...S.createBtn, background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)'}}>
+                <button onClick={() => navigate('/manage-club')} style={{...S.createBtn, background: 'var(--bg2)', color: 'var(--text)', border: '1px solid var(--border)'}}>
                   <User size={16} /> Edit Profile
                 </button>
               )}
@@ -370,251 +213,13 @@ export default function OrganizerDashboard() {
                 showActions={isOrganizer}
                 onEdit={openEdit}
                 onDelete={handleDelete}
+                onViewAttendees={() => navigate(`/attendees/${e._id}`)}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* ── Club Profile Modal ── */}
-      {clubModal && (
-        <div style={S.overlay} onClick={() => setClubModal(false)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={S.modalHead}>
-              <div>
-                <h2 style={S.modalTitle}>👤 Edit Club Profile</h2>
-                <p style={S.modalSub}>Update your campus presence and social links.</p>
-              </div>
-              <button onClick={() => setClubModal(false)} style={S.closeBtn}><X size={18} /></button>
-            </div>
-            
-            <form onSubmit={handleClubSubmit} style={S.modalForm}>
-              <div style={S.section}>
-                <div style={S.sectionLabel}><FileText size={13} /> Basic Information</div>
-                <div style={S.fieldGroup}>
-                  <textarea placeholder="Club Description" value={clubForm.description}
-                    onChange={e => setClubForm({...clubForm, description: e.target.value})} rows={3} style={{ resize: 'vertical' }} />
-                  
-                  <div style={S.row2}>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text2)' }}>Cover Image</span>
-                      <input type="file" accept="image/*"
-                         onChange={e => {
-                           const file = e.target.files[0];
-                           if(file) {
-                             const reader = new FileReader();
-                             reader.onloadend = () => setClubForm({...clubForm, coverImage: reader.result});
-                             reader.readAsDataURL(file);
-                           }
-                         }} 
-                      />
-                    </label>
-                    <label style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text2)' }}>Logo Image</span>
-                      <input type="file" accept="image/*"
-                         onChange={e => {
-                           const file = e.target.files[0];
-                           if(file) {
-                             const reader = new FileReader();
-                             reader.onloadend = () => setClubForm({...clubForm, logo: reader.result});
-                             reader.readAsDataURL(file);
-                           }
-                         }}
-                      />
-                    </label>
-                  </div>
-                  
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: "var(--text)", marginTop: 8 }}>
-                    <input type="checkbox" checked={clubForm.isRecruiting} 
-                      onChange={e => setClubForm({...clubForm, isRecruiting: e.target.checked})} />
-                    We are currently recruiting new members!
-                  </label>
-                </div>
-              </div>
-
-              <div style={S.section}>
-                <div style={S.sectionLabel}><LinkIcon size={13} /> Social Links</div>
-                <div style={S.fieldGroup}>
-                  <input placeholder="Instagram Link" value={clubForm.socialLinks.instagram}
-                    onChange={e => setClubForm({...clubForm, socialLinks: {...clubForm.socialLinks, instagram: e.target.value}})} />
-                  <input placeholder="LinkedIn Link" value={clubForm.socialLinks.linkedin}
-                    onChange={e => setClubForm({...clubForm, socialLinks: {...clubForm.socialLinks, linkedin: e.target.value}})} />
-                  <input placeholder="Website Link" value={clubForm.socialLinks.website}
-                    onChange={e => setClubForm({...clubForm, socialLinks: {...clubForm.socialLinks, website: e.target.value}})} />
-                </div>
-              </div>
-              
-              <button type="submit" style={{ ...S.submitBtn, opacity: submitting ? 0.7 : 1 }} disabled={submitting}>
-                {submitting ? 'Saving...' : '💾 Save Profile'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal ── */}
-      {modal && (
-        <div style={S.overlay} onClick={() => setModal(false)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
-            {/* Modal header */}
-            <div style={S.modalHead}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <h2 style={S.modalTitle}>{editData ? '✏️ Edit Event' : '✦ Create Event'}</h2>
-                  {/* Draft Controls */}
-                  {!editData && localStorage.getItem('eventDraft') && (
-                    <button type="button" onClick={clearDraft} style={{ border: 'none', background: 'var(--red)', color: '#fff', fontSize: 11, padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>
-                      Clear Draft
-                    </button>
-                  )}
-                </div>
-                <p style={S.modalSub}>
-                  {editData ? 'Changes will require re-approval' : localStorage.getItem('eventDraft') ? 'Resuming from saved draft...' : 'Submit for faculty review'}
-                </p>
-              </div>
-              <button onClick={() => setModal(false)} style={S.closeBtn}><X size={18} /></button>
-            </div>
-
-            {editData && (
-              <div style={S.editBanner}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
-                  <input type="checkbox" checked={form.needsReapproval} onChange={e => setForm({...form, needsReapproval: e.target.checked})} style={{ width: 15, height: 15, accentColor: 'var(--accent)', cursor: 'pointer' }} />
-                  ⚠️ This vital change requires Faculty Re-approval (Date/Venue/Max Capacity)
-                </label>
-                {form.needsReapproval ? (
-                  <textarea
-                    placeholder="Briefly explain this change to the faculty..."
-                    value={form.reapprovalNote}
-                    onChange={e => setForm({...form, reapprovalNote: e.target.value})}
-                    style={{ marginTop: 10, width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text)', padding: '8px 10px', borderRadius: 6, fontSize: 13, outline: 'none', resize: 'vertical' }}
-                    rows={2}
-                  />
-                ) : (
-                  <p style={{ marginTop: 6, fontSize: 12, color: 'var(--text2)', marginLeft: 23 }}>
-                    Turn this on only if the event logistics changed structurally. Minor edits (typos, posters) save immediately.
-                  </p>
-                )}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} style={S.modalForm}>
-
-              {/* ── Basic Info ── */}
-              <div style={S.section}>
-                <div style={S.sectionLabel}><FileText size={13} /> Basic Information</div>
-                <div style={S.fieldGroup}>
-                  <input placeholder="Event title *" value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})} required />
-                  <textarea placeholder="Short description (shown on event card)"
-                    value={form.description}
-                    onChange={e => setForm({...form, description: e.target.value})}
-                    rows={2} style={{ resize: 'vertical' }} />
-                  <div>
-                    <textarea placeholder="Detailed description — agenda, prizes, eligibility, rules…"
-                      value={form.detailedDescription}
-                      onChange={e => setForm({...form, detailedDescription: e.target.value})}
-                      rows={5} style={{ resize: 'vertical' }} />
-                    <p style={{fontSize: 11, color: 'var(--muted)', marginTop: 4, marginLeft: 2}}>
-                      ✨ Markdown supported: **bold**, *italic*, - lists
-                    </p>
-                  </div>
-                  <div style={S.row2}>
-                    <select value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                      {CATS.map(c => <option key={c}>{c}</option>)}
-                    </select>
-                    <input type="datetime-local" value={form.date}
-                      onChange={e => setForm({...form, date: e.target.value})} required />
-                  </div>
-                  <div style={S.row2}>
-                    <input placeholder="Venue *" value={form.venue}
-                      onChange={e => setForm({...form, venue: e.target.value})} required />
-                    <input type="number" placeholder="Max capacity" value={form.maxCapacity}
-                      onChange={e => setForm({...form, maxCapacity: e.target.value})} />
-                  </div>
-                  <input placeholder="Tags — comma separated (e.g. Free, Workshop, Coding)"
-                    value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
-                </div>
-              </div>
-
-              {/* ── Poster & Link ── */}
-              <div style={S.section}>
-                <div style={S.sectionLabel}><Upload size={13} /> Poster &amp; Registration</div>
-                <div style={S.fieldGroup}>
-                  <label htmlFor="poster-upload" style={S.posterLabel}>
-                    {posterPreview ? (
-                      <img src={posterPreview} alt="preview" style={S.posterImg} />
-                    ) : (
-                      <div style={S.posterPlaceholder}>
-                        <Upload size={26} color="var(--blue)" />
-                        <span style={{ color: "var(--text2)", fontSize: 13, marginTop: 8 }}>
-                          Click to upload event poster
-                        </span>
-                        <span style={{ color: "var(--muted)", fontSize: 11, marginTop: 3 }}>
-                          JPG · PNG · GIF · WEBP
-                        </span>
-                      </div>
-                    )}
-                  </label>
-                  <input id="poster-upload" type="file" accept="image/*"
-                    style={{ display: 'none' }} onChange={handlePosterChange} />
-                  {posterPreview && (
-                    <button type="button" style={S.removeBtn}
-                      onClick={() => { setForm(f => ({...f, poster:''})); setPosterPreview(null); }}>
-                      ✕ Remove poster
-                    </button>
-                  )}
-
-                  <div style={S.linkInput}>
-                    <LinkIcon size={14} color="var(--muted)" style={{ flexShrink: 0 }} />
-                    <input
-                      placeholder="Application / Registration link (https://…)"
-                      value={form.applicationLink}
-                      onChange={e => setForm({...form, applicationLink: e.target.value})}
-                      style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: "var(--text)", fontSize: 14 }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Event Heads ── */}
-              <div style={S.section}>
-                <div style={S.sectionLabel}><User size={13} /> Event Heads</div>
-                <div style={S.fieldGroup}>
-                  {[1, 2].map(n => (
-                    <div key={n} style={S.headCard}>
-                      <div style={S.headCardTitle}>
-                        <span style={S.headBadge}>Head {n}</span>
-                        {form[`eventHead${n}`].name && (
-                          <span style={{ color: "var(--text2)", fontSize: 12 }}>{form[`eventHead${n}`].name}</span>
-                        )}
-                      </div>
-                      <div style={S.headGrid}>
-                        <input placeholder="Full Name"
-                          value={form[`eventHead${n}`].name}
-                          onChange={e => setHead(`eventHead${n}`, 'name', e.target.value)} />
-                        <input placeholder="Roll Number"
-                          value={form[`eventHead${n}`].rollNo}
-                          onChange={e => setHead(`eventHead${n}`, 'rollNo', e.target.value)} />
-                        <input placeholder="Contact Number" style={{ gridColumn: '1 / -1' }}
-                          value={form[`eventHead${n}`].contact}
-                          onChange={e => setHead(`eventHead${n}`, 'contact', e.target.value)} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button type="submit" style={{ ...S.submitBtn, opacity: submitting ? 0.7 : 1 }} disabled={submitting}>
-                {submitting ? (
-                  <><span style={S.spinnerInline} /> Submitting…</>
-                ) : (
-                  <>{editData ? '💾 Save Changes' : '🚀 Submit for Approval'}</>
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

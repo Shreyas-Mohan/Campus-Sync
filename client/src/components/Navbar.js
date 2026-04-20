@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LogOut, Bell, Zap, RefreshCw, CheckCheck, Moon, Sun } from 'lucide-react';
+import { LogOut, Bell, Zap, RefreshCw, CheckCheck, Moon, Sun, HelpCircle, Compass, Settings, Ticket } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api`;
 
@@ -155,6 +155,11 @@ function NotificationBell({ token }) {
               ))
             )}
           </div>
+          
+          {/* View All Footer */}
+          <div style={BS.panelFooter} onClick={() => { setOpen(false); navigate('/notifications'); }}>
+            View all notifications
+          </div>
         </div>
       )}
     </div>
@@ -204,6 +209,12 @@ const BS = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer', transition: 'all 0.2s',
   },
+  panelFooter: {
+    padding: '12px', borderTop: '1px solid var(--border)', textAlign: 'center',
+    color: 'var(--blue)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    background: 'var(--bg-hover)', borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+    transition: '0.2s',
+  },
   list: { maxHeight: 360, overflowY: 'auto' },
   empty: {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -235,6 +246,7 @@ export default function Navbar({ title }) {
   const { user, token, logout } = useAuth();
   const navigate  = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [logoutHover, setLogoutHover] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -242,7 +254,12 @@ export default function Navbar({ title }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => { 
+    if (window.confirm("Are you sure you want to logout?")) {
+      logout(); 
+      navigate('/login'); 
+    }
+  };
 
   const roleConfig = {
     student:   { label: 'Student',   color: "var(--green)", bg: 'rgba(74,222,128,0.1)',  border: 'rgba(74,222,128,0.25)' },
@@ -312,9 +329,27 @@ export default function Navbar({ title }) {
         <div style={S.divider} />
 
         {/* Logout */}
-        <button onClick={handleLogout} style={S.logoutBtn} aria-label="Logout">
-          <LogOut size={16} />
-          <span>Logout</span>
+        <button 
+          onClick={handleLogout} 
+          onMouseEnter={() => setLogoutHover(true)}
+          onMouseLeave={() => setLogoutHover(false)}
+          style={{
+            ...S.logoutBtn,
+            padding: logoutHover ? '0 14px' : '0 11px',
+            background: logoutHover ? 'rgba(248,113,113,0.15)' : 'rgba(248,113,113,0.08)'
+          }} 
+          aria-label="Logout"
+          title="Logout"
+        >
+          <LogOut size={16} color={logoutHover ? '#ff5555' : 'var(--red)'} style={{ flexShrink: 0, transition: 'color 0.2s' }} />
+          <span style={{
+            maxWidth: logoutHover ? 60 : 0,
+            opacity: logoutHover ? 1 : 0,
+            marginLeft: logoutHover ? 6 : 0,
+            overflow: 'hidden',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            whiteSpace: 'nowrap'
+          }}>Logout</span>
         </button>
       </div>
     </nav>
@@ -381,9 +416,10 @@ const S = {
   divider: { width: 1, height: 28, background: "var(--border)", margin: '0 4px' },
 
   logoutBtn: {
-    display: 'flex', alignItems: 'center', gap: 6,
-    background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)',
-    color: "var(--red)", borderRadius: 10, padding: '7px 14px',
-    fontSize: 13, fontWeight: 500, transition: 'all 0.2s',
+    display: 'flex', alignItems: 'center', height: 38,
+    border: '1px solid rgba(248,113,113,0.2)',
+    color: "var(--red)", borderRadius: 10,
+    fontSize: 13, fontWeight: 600, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer', boxSizing: 'border-box'
   },
 };

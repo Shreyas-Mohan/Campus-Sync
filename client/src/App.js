@@ -11,7 +11,14 @@ import OrganizerDashboard from './pages/OrganizerDashboard';
 import EventDetails from './pages/EventDetails';
 import Profile from './pages/Profile';
 import ClubProfile from './pages/ClubProfile';
-import ClubsList from './pages/ClubsList'; // ADDED
+import ManageClubProfile from './pages/ManageClubProfile';
+import ClubsList from './pages/ClubsList';
+import Notifications from './pages/Notifications';
+import CreateEvent from './pages/CreateEvent';
+import SupportTickets from './pages/SupportTickets';
+import Settings from './pages/Settings';
+import MyRSVPs from './pages/MyRSVPs';
+import EventAttendees from './pages/EventAttendees';
 
 function AxiosInterceptor({ children }) {
   const { logout } = useAuth();
@@ -63,10 +70,17 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/feed" element={<PrivateRoute><StudentFeed /></PrivateRoute>} />
               <Route path="/dashboard" element={<PrivateRoute roles={['organizer', 'club', 'faculty']}><OrganizerDashboard /></PrivateRoute>} />
+              <Route path="/create-event" element={<PrivateRoute roles={['organizer', 'club', 'admin']}><CreateEvent /></PrivateRoute>} />
               <Route path="/events/:id" element={<PrivateRoute><EventDetails /></PrivateRoute>} />
               <Route path="/club" element={<PrivateRoute><ClubsList /></PrivateRoute>} />
               <Route path="/club/:id" element={<PrivateRoute><ClubProfile /></PrivateRoute>} />
+              <Route path="/manage-club" element={<PrivateRoute roles={['club', 'admin']}><ManageClubProfile /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/support" element={<PrivateRoute><SupportTickets /></PrivateRoute>} />
+              <Route path="/rsvps" element={<PrivateRoute><MyRSVPs /></PrivateRoute>} />
+              <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+              <Route path="/attendees/:eventId" element={<PrivateRoute><EventAttendees /></PrivateRoute>} />
+              <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
             </Routes>
           </BrowserRouter>
         </AxiosInterceptor>

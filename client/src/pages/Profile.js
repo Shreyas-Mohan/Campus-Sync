@@ -4,8 +4,9 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import PendingInvites from '../components/PendingInvites';
 import {
-  User, Mail, Shield, Save, ArrowLeft, Sparkles, CheckCircle2, Lock, Key
+  User, Mail, Shield, Save, ArrowLeft, Sparkles, CheckCircle2, Lock, Key, Settings, Ticket, HelpCircle
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api`;
@@ -141,6 +142,7 @@ export default function Profile() {
       <div style={S.blob2} />
 
       <div style={S.container}>
+        <PendingInvites />
 
         {/* ── Back button ── */}
         <button onClick={() => navigate(-1)} style={S.backBtn}>
@@ -233,6 +235,21 @@ export default function Profile() {
 
           {/* ── RIGHT COLUMN ── */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+            {/* Quick Links */}
+            <div style={S.editCard}>
+              <h2 style={S.cardTitle}>Quick Links</h2>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+                <button onClick={() => navigate('/settings')} style={S.actionBtn}>
+                  <Settings size={16} /> App Settings
+                </button>
+                {user?.role === 'student' && (
+                  <button onClick={() => navigate('/rsvps')} style={S.actionBtn}>
+                    <Ticket size={16} /> My RSVPs
+                  </button>
+                )}
+              </div>
+            </div>
           
             {/* Edit details */}
             <div style={S.editCard}>
@@ -490,6 +507,14 @@ const S = {
   interestIcon: { fontSize: 16, flexShrink: 0 },
   interestLabel: { flex: 1 },
   hint: { fontSize: 12, color: "var(--faint)", margin: 0 },
+
+  actionBtn: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '12px 16px', borderRadius: 12, border: '1px solid var(--border)',
+    background: 'var(--bg)', color: 'var(--text)', fontSize: 14, fontWeight: 600,
+    cursor: 'pointer', transition: 'all 0.2s',
+    flex: '1 1 auto', justifyContent: 'center'
+  },
 
   saveBtn: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

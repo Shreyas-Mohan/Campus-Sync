@@ -29,19 +29,19 @@
   --faint:    #4b5263;
 
   /* Fixed Accents (same in both themes) */
-  --accent:   #e8c97a;
-  --blue:     #5b8dee;
-  --blue2:    #3b6fd6;
-  --purple:   #a78bfa;
+  --accent:   #8a2be2; /* Violet theme focus */
+  --blue:     #9f7aea; /* Soft violet/blue */
+  --blue2:    #7e57c2; /* Deeper violet */
+  --purple:   #b794f4;
   --green:    #4ade80;
   --red:      #f87171;
   --pink:     #f472b6;
-  --teal:     #2dd4bf;
+  --teal:     #00ced1;
   --orange:   #fb923c;
 
   /* Accent helpers */
-  --blue-dim:    rgba(91,141,238,0.08);
-  --blue-border: rgba(91,141,238,0.25);
+  --blue-dim:    rgba(138,43,226,0.08); /* Violet dim */
+  --blue-border: rgba(138,43,226,0.25); /* Violet border */
 
   /* Layout */
   --radius:   14px;
@@ -50,16 +50,16 @@
   --shadow:   0 4px 24px rgba(0,0,0,0.5);
   --shadow-lg:0 12px 48px rgba(0,0,0,0.6);
   --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
-  --glow-blue:0 0 24px rgba(91,141,238,0.25);
-  --glow-gold:0 0 24px rgba(232,201,122,0.2);
+  --glow-blue:0 0 24px rgba(138,43,226,0.3); /* Violet glow */
+  --glow-gold:0 0 24px rgba(138,43,226,0.25);
   --nav-h:    64px;
 
   /* Glassmorphism */
   --glass-bg: rgba(22,25,33,0.7);
-  --glass-border: rgba(255,255,255,0.06);
+  --glass-border: rgba(138,43,226,0.15); /* Subtle violet glass border */
 
   /* Hero */
-  --hero-bg: linear-gradient(180deg, #0d1020 0%, #080910 100%);
+  --hero-bg: linear-gradient(180deg, #130a1e 0%, #080910 100%); /* Violet-tinted hero */
 
   /* Nav */
   --nav-bg-idle:     rgba(8,9,16,0.75);
@@ -68,10 +68,22 @@
   --nav-border-scrolled: rgba(37,40,54,0.8);
 }
 
+/* ─── Scrollbar Utility ─── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 /* ─────────────────────────────────────────────────────────────────────
    LIGHT THEME
 ───────────────────────────────────────────────────────────────────── */
 [data-theme="light"] {
+  /* ... LIGHT THEME REMAINS REMOVED BUT CSS PRESERVED AS FALLBACK ... */
+  display: none; /* Just to ensure nobody triggers light theme */
+}
   /* Backgrounds */
   --bg:       #fafafa; /* Clean soft light */
   --bg2:      #ffffff;
@@ -126,7 +138,7 @@
   --nav-bg-scrolled: rgba(255,255,255,0.95);
   --nav-border-idle:     rgba(228,228,231,0.5);
   --nav-border-scrolled: rgba(228,228,231,0.9);
-}
+
 
 /* ─── Scrollbars & Utilities ────────────────────────────────────────── */
 ::-webkit-scrollbar {

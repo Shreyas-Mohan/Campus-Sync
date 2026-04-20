@@ -15,6 +15,7 @@ export default function ClubsList() {
   const [clubs, setClubs] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [tagFilter, setTagFilter] = useState('All');
 
   // Theme definition
   const th = isDark ? {
@@ -35,6 +36,11 @@ export default function ClubsList() {
     },
     searchInput: {
       border: 'none', background: 'transparent', padding: '0.8rem', color: th.text, width: '100%', outline: 'none'
+    },
+    tagBtn: {
+      padding: '6px 16px', borderRadius: 20, border: '1px solid',
+      fontSize: 14, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap',
+      transition: 'all 0.2s', marginTop: '1rem'
     },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' },
     card: {
@@ -95,7 +101,13 @@ export default function ClubsList() {
     }
   };
 
-  const filtered = clubs.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const availableTags = ['All', ...new Set(clubs.flatMap(c => c.tags || []))].filter(Boolean);
+
+  const filtered = clubs.filter(c => {
+    const matchSearch = c.name?.toLowerCase().includes(search.toLowerCase());
+    const matchTag = tagFilter === 'All' || c.tags?.includes(tagFilter);
+    return matchSearch && matchTag;
+  });
 
   return (
     <div style={CS.container}>
@@ -113,6 +125,23 @@ export default function ClubsList() {
               onChange={e => setSearch(e.target.value)}
               style={CS.searchInput} 
             />
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
+            {availableTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => setTagFilter(tag)}
+                style={{
+                  ...CS.tagBtn,
+                  background: tagFilter === tag ? 'var(--primary)' : th.card,
+                  color: tagFilter === tag ? '#fff' : th.muted,
+                  borderColor: tagFilter === tag ? 'var(--primary)' : th.border
+                }}
+              >
+                {tag}
+              </button>
+            ))}
           </div>
         </div>
 

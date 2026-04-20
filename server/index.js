@@ -14,6 +14,8 @@ app.use('/api/clubs',         require('./routes/clubs'));
 app.use('/api/rsvp',          require('./routes/rsvp'));
 app.use('/api/comments',      require('./routes/comments'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/tickets', require('./routes/tickets'));
+app.use('/api/team', require('./routes/team'));
 
 // Root ping route for keep-alive cron jobs
 app.get('/', (req, res) => {
