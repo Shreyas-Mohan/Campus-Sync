@@ -52,11 +52,17 @@ npm start
 
 ## 📅 Version History / Changelog
 
-### v1.2.0 - The Architecture & UX Audit Update (Latest)
+### v1.3.0 - The Integration & Stability Update (Latest)
+* **Dynamic Student Feed:** Integrated the "Picked for you" interest-based logic as a native category filter, streamlining the discovery grid UI.
+* **RSVP Security & Endpoints:** Handled missing backend event API endpoints and fortified RSVP authorization to fully support independent (non-club) organizers.
+* **Streamlined Navbar & Login:** Created a smooth animated hover expansion for the Logout button, added confirmation safeguards against accidental logouts, and bypassed native MS Edge password dual eye-icon interference on login screens.
+* **Hero Section Refinement:** Removed static event counts from feed banners for a cleaner UX.
+
+### v1.2.0 - The Architecture & UX Audit Update
 * **Access Control:** Fixed Faculty Dashboard routing, unlocking role-specific event approval panels.
-* **Server-Side Integrity:** Hardened RSVP limits to prevent network race conditions on sold-out events. Added missing single event endpoints and tightened RSVP authorization endpoints to securely support independent organizers.
+* **Server-Side Integrity:** Hardened RSVP limits to prevent network race conditions on sold-out events.
 * **Database Optimization:** Implemented cascade deletions for Comments and Notifications to prevent orphan DB records and frontend crashes.
-* **Global UX Enhancements:** Added an Axios interceptor for graceful handling of expired JWT tokens, standardized event status via server time (fixing timezone bias), expanded skeleton loaders, resolved native browser password toggle UI conflicts, and refactored the Student Feed to natively integrate "Picked for you" interest-based filtering.
+* **Global UX Enhancements:** Added an Axios interceptor for graceful handling of expired JWT tokens, standardized event status via server time (fixing timezone bias), and expanded skeleton loaders.
 
 ### v1.1.0 - The Polish Update
 * **Cloudinary Integration:** Added high-performance image hosting for Event Posters, Club Logos, and User Avatars.

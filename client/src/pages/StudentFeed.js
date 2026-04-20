@@ -143,7 +143,7 @@ export default function StudentFeed() {
                   })()}
                 </span>
               </h1>
-              <p style={S.heroSub}>Discover {events.length} events happening on campus</p>
+              <p style={S.heroSub}>Discover events happening on campus</p>
             </div>
             
             <div style={S.heroActions}>
