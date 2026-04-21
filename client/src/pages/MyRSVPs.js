@@ -118,7 +118,7 @@ export default function MyRSVPs() {
                       <p style={S.evtDesc}>{event.description?.substring(0, 100)}...</p>
 
                       <div style={S.actions}>
-                        <Link to={`/event/${event._id}`} style={S.viewBtn}>
+                        <Link to={`/events/${event._id}`} style={S.viewBtn}>
                           <ExternalLink size={14} /> View Details
                         </Link>
                         {status !== 'past' && (
