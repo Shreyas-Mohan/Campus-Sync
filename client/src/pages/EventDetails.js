@@ -26,6 +26,7 @@ const STATUS_CFG = {
   approved: { color: "var(--green)", bg: 'rgba(74,222,128,0.08)',   border: 'rgba(74,222,128,0.25)',  label: '● Live' },
   pending:  { color: "var(--accent)", bg: 'rgba(232,201,122,0.08)', border: 'rgba(232,201,122,0.25)', label: '● Pending' },
   rejected: { color: "var(--red)", bg: 'rgba(248,113,113,0.08)', border: 'rgba(248,113,113,0.25)', label: '● Rejected' },
+  past:     { color: "var(--muted)", bg: 'var(--bg3)', border: 'var(--border)', label: '● Ended' },
 };
 
 /* ─── Helpers ─── */
@@ -297,7 +298,7 @@ function CommentsSection({ eventId, organizerId, token, user }) {
     const fetch = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.REACT_APP_API_URL || `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`}/api/comments/${eventId}`,
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/comments/${eventId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setComments(data);
@@ -523,24 +524,20 @@ export default function EventDetails() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data: all } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/all`,
-          { headers: { Authorization: `Bearer ${token}` } });
-        const found = all.find(e => e._id === id);
-        if (found) { setEvent(found); }
-        else {
-          const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`,
-            { headers: { Authorization: `Bearer ${token}` } });
-          setEvent(data.find(e => e._id === id) || null);
-        }
-      } catch {
-        try {
-          const { data } = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events`,
-            { headers: { Authorization: `Bearer ${token}` } });
-          setEvent(data.find(e => e._id === id) || null);
-        } catch {}
-      } finally { setLoading(false); }
+        // Direct fetch by ID is much more reliable for specific links
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/events/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEvent(data);
+      } catch (err) {
+        console.error("Error fetching event:", err);
+        setEvent(null);
+      } finally {
+        setLoading(false);
+      }
     };
-    fetch();
+    if (id && token) fetch();
   }, [id, token]);
 
   // ── Loading ──
