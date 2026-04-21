@@ -17,7 +17,7 @@ export default function EventCard({
   onDelete,
   onViewAttendees,
 }) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate  = useNavigate();
   const [rsvpd,   setRsvpd]   = useState(initialRsvpd);
   const [count,   setCount]   = useState(event.rsvpCount || 0);
@@ -218,17 +218,17 @@ export default function EventCard({
           </button>
 
           {/* RSVP */}
-          {!showApprove && !showActions && event.status === 'approved' && isPastEvent && (
+          {!showApprove && !showActions && event.status === 'approved' && isPastEvent && user?.role === 'student' && (
             <button disabled style={{ ...S.rsvpBtn, background: 'var(--bg3)', color: 'var(--muted)', cursor: 'not-allowed' }}>
               Event Ended
             </button>
           )}
-          {!showApprove && !showActions && event.status === 'approved' && !isPastEvent && isSoldOut && !rsvpd && (
+          {!showApprove && !showActions && event.status === 'approved' && !isPastEvent && isSoldOut && !rsvpd && user?.role === 'student' && (
             <button disabled style={{ ...S.rsvpBtn, background: 'rgba(248,113,113,0.1)', color: 'var(--red)', border: '1px solid rgba(248,113,113,0.3)', cursor: 'not-allowed' }}>
               Sold Out
             </button>
           )}
-          {!showApprove && !showActions && event.status === 'approved' && !isPastEvent && (!isSoldOut || rsvpd) && (
+          {!showApprove && !showActions && event.status === 'approved' && !isPastEvent && (!isSoldOut || rsvpd) && user?.role === 'student' && (
             <button
               onClick={handleRsvp}
               disabled={loading}

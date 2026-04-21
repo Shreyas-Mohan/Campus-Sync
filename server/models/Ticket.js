@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, required: true }, // Can be User or Club
+  userModel: { type: String, enum: ['User', 'Club'], default: 'User' },
   title: { type: String, required: true },
   description: { type: String, required: true },
   category: { type: String, enum: ['bug', 'feature_request', 'club_sponsorship', 'other'], default: 'bug' },

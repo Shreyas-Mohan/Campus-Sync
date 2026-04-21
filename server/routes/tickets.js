@@ -15,12 +15,28 @@ router.get('/', auth, async (req, res) => {
 // Admin gets all tickets
 router.get('/all', auth, async (req, res) => {
   try {
-    // Basic auth check for admin role can go here if needed, ignoring for simple implementation
     if (req.user.role !== 'admin') {
       return res.status(403).json({ msg: 'Access denied' });
     }
-    const tickets = await Ticket.find().populate('user', 'name email').sort({ createdAt: -1 });
-    res.json(tickets);
+    // Cannot directly populate without model if defined dynamically unless we provide path
+    // But we can retrieve the tickets and populate manually if needed. Or just leave it raw and handle in frontend if needed?
+    // Actually, Model.populate(doc, { path: 'user', select: 'name email', model: doc.userModel }) - wait, that's possible.
+    const tickets = await Ticket.find().sort({ createdAt: -1 });
+
+    const populatedTickets = await Promise.all(tickets.map(async (t) => {
+      // Find reporter
+      let reporter = null;
+      if (t.userModel === 'Club') {
+         reporter = await require('../models/Club').findById(t.user).select('name email');
+      } else {
+         reporter = await require('../models/User').findById(t.user).select('name email role');
+      }
+      const tObj = t.toObject();
+      tObj.reporter = reporter;
+      return tObj;
+    }));
+
+    res.json(populatedTickets);
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -32,8 +48,10 @@ router.post('/', auth, async (req, res) => {
   if (!title || !description) return res.status(400).json({ msg: 'Title and description required' });
 
   try {
+    const userModel = req.user.role === 'club' ? 'Club' : 'User';
     const newTicket = new Ticket({
       user: req.user.id,
+      userModel,
       title,
       description,
       category: category || 'bug'

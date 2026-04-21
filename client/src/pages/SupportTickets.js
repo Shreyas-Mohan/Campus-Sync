@@ -125,10 +125,39 @@ export default function SupportTickets() {
                     <p style={{ fontSize: 13, color: 'var(--text)' }}>{t.adminReply}</p>
                   </div>
                 )}
+
+                {user?.role === 'admin' && (
+                  <div style={{ marginTop: 12, display: 'flex', gap: 8, flexDirection: 'column' }}>
+                    <textarea 
+                      placeholder="Add an admin reply..." 
+                      style={{ ...S.input, minHeight: 60, padding: 8, fontSize: 13 }}
+                      onBlur={async (e) => {
+                        if(e.target.value.trim()) {
+                           await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/tickets/${t._id}`, { adminReply: e.target.value }, { headers: { Authorization: `Bearer ${token}` }});
+                           toast.success('Reply saved');
+                           e.target.value = '';
+                           fetchTickets();
+                        }
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                       {['in_progress', 'resolved', 'closed'].filter(st => st !== t.status).map(st => (
+                          <button key={st} style={{ ...S.actionBtn, padding: '4px 8px', fontSize: 12 }} 
+                            onClick={async () => {
+                               await axios.put(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/tickets/${t._id}`, { status: st }, { headers: { Authorization: `Bearer ${token}` }});
+                               toast.success(`Status updated to ${st}`);
+                               fetchTickets();
+                            }}>
+                            Set {st}
+                          </button>
+                       ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div style={S.footer}>
                   <span>Submitted on {new Date(t.createdAt).toLocaleDateString()}</span>
-                  {user?.role === 'admin' && <span>By: {t.user?.name || 'Student'}</span>}
+                  {user?.role === 'admin' && <span>By: {t.reporter?.name || t.user?.name || 'Unknown'} ({t.userModel === 'Club' ? 'Club' : (t.reporter?.role || 'User')})</span>}
                 </div>
               </motion.div>
             ))}
@@ -196,6 +225,7 @@ const S = {
   title: { fontSize: 32, fontFamily: "'DM Serif Display', serif", color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 },
   subtitle: { fontSize: 16, color: 'var(--muted)' },
   createBtn: { display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'none', color: '#fff', padding: '10px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 15px rgba(59,130,246,0.3)', },
+  actionBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg3)', border: 'none', color: 'var(--text)', padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: '0.2s' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 },
   card: { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, padding: '24px', display: 'flex', flexDirection: 'column' },
   cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
